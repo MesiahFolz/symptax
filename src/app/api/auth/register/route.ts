@@ -39,9 +39,16 @@ export async function POST(req: Request) {
       { message: "User created successfully", user: { id: user.id, email: user.email, role: user.role } },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
+    console.error("REGISTRATION_ERROR:", error);
+    
+    // Check for specific Prisma errors
+    const errorMessage = error.message?.includes("Can't reach database") 
+      ? "Could not connect to the database. Please check your credentials."
+      : "Something went wrong during registration.";
+
     return NextResponse.json(
-      { message: "Something went wrong" },
+      { message: errorMessage, error: error.message },
       { status: 500 }
     );
   }
