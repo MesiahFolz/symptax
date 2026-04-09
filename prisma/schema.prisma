@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  name          String
+  role          String         @default("PATIENT")
+  
+  // Relations
+  records       MedicalRecord[] @relation("PatientRecords")
+  messagesSent  Message[]      @relation("MessageSender")
+  messagesRecv  Message[]      @relation("MessageReceiver")
+  notifications Notification[] @relation("UserNotifications")
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model MedicalRecord {
+  id              String   @id @default(uuid())
+  title           String
+  content         String?  // Text notes / Diagnosis
+  type            String   @default("NOTE") // "DIAGNOSIS" | "PRESCRIPTION" | "NOTE" | "ALERT"
+  fileUrl         String?  // Link to PDF/Image
+  isPinned        Boolean  @default(false)
+  requiresAction  Boolean  @default(false) // For alerts/emergencies
+  tags            String?  // Comma separated e.g. "Diet, Exercise"
+  
+  patientId       String
+  patient         User     @relation("PatientRecords", fields: [patientId], references: [id])
+  
+  createdAt       DateTime @default(now())
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  content    String
+  senderId   String
+  receiverId String
+  sender     User     @relation("MessageSender", fields: [senderId], references: [id])
+  receiver   User     @relation("MessageReceiver", fields: [receiverId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation("UserNotifications", fields: [userId], references: [id])
+  message    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
