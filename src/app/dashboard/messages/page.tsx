@@ -1,4 +1,28 @@
+"use client";
+
+import { useSession } from "next-auth/react";
+import { useState, useEffect, useRef } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Send, UserCircle, Search, Stethoscope, User, MoreVertical, Phone, Video, ArrowLeft } from "lucide-react";
+
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  lastMessage: string | null;
+  lastMessageAt: string | null;
+}
+
+interface Message {
+  id: string;
+  content: string;
+  senderId: string;
+  receiverId: string;
+  createdAt: string;
+}
 
 export default function MessagesPage() {
   const { data: session } = useSession();
@@ -10,6 +34,7 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const pollRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentUserId = (session?.user as any)?.id;
 
@@ -18,7 +43,69 @@ export default function MessagesPage() {
     setIsChatVisible(true);
   };
 
-  // ... (existing fetch effects)
+  // Fetch contacts
+  useEffect(() => {
+    fetch("/api/contacts")
+      .then((r) => r.json())
+      .then((data) => setContacts(data.contacts || []))
+      .catch(console.error);
+  }, []);
+
+  // Fetch messages when contact selected
+  useEffect(() => {
+    if (!selectedContact) return;
+
+    const fetchMessages = () => {
+      fetch(`/api/messages?userId=${selectedContact.id}`)
+        .then((r) => r.json())
+        .then((data) => setMessages(data.messages || []))
+        .catch(console.error);
+    };
+
+    fetchMessages();
+
+    // Poll every 3 seconds for new messages
+    pollRef.current = setInterval(fetchMessages, 3000);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [selectedContact]);
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || !selectedContact || sending) return;
+
+    setSending(true);
+    try {
+      await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ receiverId: selectedContact.id, content: input }),
+      });
+      setInput("");
+      // Immediately refetch
+      const res = await fetch(`/api/messages?userId=${selectedContact.id}`);
+      const data = await res.json();
+      setMessages(data.messages || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const filteredContacts = contacts.filter(
+    (c) =>
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (!session) return null;
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] min-h-[500px] md:min-h-[600px] max-h-[900px] overflow-hidden">
@@ -203,8 +290,5 @@ export default function MessagesPage() {
         </Card>
       </div>
     </div>
-  );
-}
-
   );
 }
