@@ -6,9 +6,10 @@ import { sendVerificationApprovedEmail } from "@/lib/mail";
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (session?.user?.role !== "MASTER_ADMIN") {
@@ -16,7 +17,7 @@ export async function POST(
     }
 
     const { isVerified } = await req.json();
-    const userId = params.id;
+    const userId = id;
 
     const user = await prisma.user.update({
       where: { id: userId },

@@ -5,14 +5,15 @@ import { authOptions } from "@/lib/auth";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
     const { accept } = await req.json();
-    const requestId = params.id;
+    const requestId = id;
     const userId = (session.user as any).id;
 
     const request = await prisma.friendRequest.findFirst({

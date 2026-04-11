@@ -11,11 +11,8 @@ import { User, Ruler, Weight, Droplets, Calendar, Home, Save, Loader2, Camera, S
 import { toast } from "sonner";
 import { createClient } from "@supabase/supabase-js";
 
-// Initialize Supabase Client for client-side uploads
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Export force-dynamic to ensure this page is not statically generated at build time
+export const dynamic = "force-dynamic";
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();
@@ -23,6 +20,14 @@ export default function ProfilePage() {
   const [fetching, setFetching] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
+
+  // Initialize Supabase Client lazily
+  const getSupabase = () => {
+    return createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder"
+    );
+  };
   
   const [formData, setFormData] = useState({
     name: "",
@@ -77,6 +82,7 @@ export default function ProfilePage() {
 
     setUploading(true);
     try {
+      const supabase = getSupabase();
       // 1. Upload to Supabase Storage
       const fileExt = file.name.split(".").pop();
       const fileName = `${Math.random()}.${fileExt}`;
