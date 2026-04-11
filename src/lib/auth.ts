@@ -1,7 +1,33 @@
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, DefaultSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      role: string;
+      publicId: string;
+      isVerified: boolean;
+    } & DefaultSession["user"]
+  }
+
+  interface User {
+    role: string;
+    publicId: string;
+    isVerified: boolean;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role: string;
+    publicId: string;
+    isVerified: boolean;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -33,6 +59,8 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          publicId: user.publicId,
+          isVerified: user.isVerified,
         };
       },
     }),
@@ -41,14 +69,18 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
+        token.role = user.role;
+        token.publicId = user.publicId;
+        token.isVerified = user.isVerified;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id as string;
-        (session.user as any).role = token.role as string;
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.publicId = token.publicId;
+        session.user.isVerified = token.isVerified;
       }
       return session;
     },
