@@ -76,13 +76,20 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error("REGISTRATION_ERROR:", error);
+    console.error("REGISTRATION_FAILURE_DETAIL:", {
+      message: error.message,
+      code: error.code,
+      meta: error.meta,
+      stack: error.stack
+    });
     
     let errorMessage = "Something went wrong during registration.";
     if (error.code === "P2002") {
-      errorMessage = "Database constraint error. Please try again.";
-    } else if (error.message?.includes("Can't reach database")) {
-      errorMessage = "Could not connect to the database. Please check your credentials.";
+      errorMessage = "This email or public ID is already registered.";
+    } else if (error.message?.includes("Can't reach database") || error.code === "P2021") {
+      errorMessage = "Database connection failed. Please check your Supabase connection.";
+    } else if (error.message?.includes("Profile")) {
+      errorMessage = "Internal error creating user profile. Please try again.";
     }
 
     return NextResponse.json(

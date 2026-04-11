@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
-import { LogOut, LayoutDashboard, FileText, MessageSquare, Bot, Lightbulb, Users, Menu, X } from "lucide-react";
+import { LogOut, LayoutDashboard, FileText, MessageSquare, Bot, Lightbulb, Users, Menu, X, User, Share2, ShieldCheck, Pill } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -44,9 +44,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {!isDoctor && (
             <>
+              <Link href="/dashboard/medical-history" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                <Pill className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                Medical History
+              </Link>
               <Link href="/dashboard/timeline" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
                 <FileText className="h-5 w-5 text-slate-500 dark:text-slate-400" />
-                Medical History
+                Symptom Timeline
               </Link>
               <Link href="/dashboard/insights" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
                 <Lightbulb className="h-5 w-5 text-yellow-500" />
@@ -59,6 +63,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </>
           )}
 
+          <Link href="/dashboard/network" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+            <Share2 className="h-5 w-5 text-blue-500" />
+            Medical Network
+          </Link>
+
           {isDoctor && (
             <Link href="/dashboard/patients" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
               <Users className="h-5 w-5 text-slate-500 dark:text-slate-400" />
@@ -70,6 +79,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <MessageSquare className="h-5 w-5 text-slate-500 dark:text-slate-400" />
             Messages
           </Link>
+
+          <Link href="/dashboard/profile" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+            <User className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+            My Profile
+          </Link>
+
+          {(session?.user as any)?.role === "MASTER_ADMIN" && (
+            <Link href="/dashboard/master" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors font-bold mt-4">
+              <ShieldCheck className="h-5 w-5" />
+              Master Admin
+            </Link>
+          )}
         </nav>
 
         <div className="p-4 border-t border-slate-100 dark:border-slate-800">

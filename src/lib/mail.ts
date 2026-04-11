@@ -24,8 +24,13 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
       `,
     });
     return { success: true };
-  } catch (error) {
-    console.error("RESEND_ERROR:", error);
+  } catch (error: any) {
+    console.error("RESEND_ERROR_DETAIL:", {
+      message: error?.message,
+      name: error?.name,
+      statusCode: error?.statusCode,
+      error_code: error?.error_code,
+    });
     return { success: false, error };
   }
 };
@@ -48,8 +53,13 @@ export const sendVerificationApprovedEmail = async (email: string, name: string)
       `,
     });
     return { success: true };
-  } catch (error) {
-    console.error("RESEND_ERROR:", error);
+  } catch (error: any) {
+    console.error("RESEND_ERROR_DETAIL:", {
+      message: error?.message,
+      name: error?.name,
+      statusCode: error?.statusCode,
+      error_code: error?.error_code,
+    });
     return { success: false, error };
   }
 };
