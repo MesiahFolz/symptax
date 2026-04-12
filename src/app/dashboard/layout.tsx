@@ -42,31 +42,47 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             Dashboard
           </Link>
 
-          {!isDoctor && (
+          {(session?.user as any)?.role !== "MASTER_ADMIN" && (
             <>
-              <Link href="/dashboard/medical-history" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-                <Pill className="h-5 w-5 text-slate-500 dark:text-slate-400" />
-                Medical History
+              {!isDoctor && (
+                <>
+                  <Link href="/dashboard/medical-history" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                    <Pill className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                    Medical History
+                  </Link>
+                  <Link href="/dashboard/timeline" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                    <FileText className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                    Symptom Timeline
+                  </Link>
+                  <Link href="/dashboard/insights" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                    <Lightbulb className="h-5 w-5 text-yellow-500" />
+                    Insights
+                  </Link>
+                  <Link href="/dashboard/ai-chat" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                    <Bot className="h-5 w-5 text-purple-500" />
+                    Health Bot
+                  </Link>
+                </>
+              )}
+
+              <Link href="/dashboard/network" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                <Share2 className="h-5 w-5 text-blue-500" />
+                Medical Network
               </Link>
-              <Link href="/dashboard/timeline" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-                <FileText className="h-5 w-5 text-slate-500 dark:text-slate-400" />
-                Symptom Timeline
-              </Link>
-              <Link href="/dashboard/insights" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-                <Lightbulb className="h-5 w-5 text-yellow-500" />
-                Insights
-              </Link>
-              <Link href="/dashboard/ai-chat" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-                <Bot className="h-5 w-5 text-purple-500" />
-                Health Bot
+
+              {isDoctor && (
+                <Link href="/dashboard/patients" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                  <Users className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                  Patients
+                </Link>
+              )}
+
+              <Link href="/dashboard/messages" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                <MessageSquare className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                Messages
               </Link>
             </>
           )}
-
-          <Link href="/dashboard/network" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-            <Share2 className="h-5 w-5 text-blue-500" />
-            Medical Network
-          </Link>
 
           {isDoctor && (
             <Link href="/dashboard/patients" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">

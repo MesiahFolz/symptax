@@ -54,6 +54,10 @@ export const authOptions: NextAuthOptions = {
 
         if (!isPasswordValid) return null;
 
+        if (!user.isVerified && user.role !== "MASTER_ADMIN") {
+          throw new Error("ACCOUNT_PENDING_VERIFICATION");
+        }
+
         return {
           id: user.id,
           email: user.email,

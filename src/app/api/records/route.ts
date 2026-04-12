@@ -19,6 +19,21 @@ export async function GET(req: Request) {
 
     if (userRole === "DOCTOR") {
       if (patientId) {
+        // Security check: Verify connection exists
+        const connection = await prisma.friendRequest.findFirst({
+          where: {
+            status: "ACCEPTED",
+            OR: [
+              { senderId: userId, receiverId: patientId },
+              { senderId: patientId, receiverId: userId },
+            ],
+          },
+        });
+
+        if (!connection) {
+          return NextResponse.json({ message: "No accepted connection found with this patient." }, { status: 403 });
+        }
+
         records = await prisma.medicalRecord.findMany({
           where: { patientId },
           orderBy: { createdAt: "desc" },

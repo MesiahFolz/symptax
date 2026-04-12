@@ -5,7 +5,7 @@ import { generatePublicId } from "@/lib/utils/id";
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password, role, verificationDoc } = await req.json();
+    const { name, email, password, role, verificationDoc, profileImage } = await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -14,13 +14,27 @@ export async function POST(req: Request) {
       );
     }
 
+    // Server-side email domain validation
+    const domain = email.split("@")[1]?.toLowerCase();
+    const isMasterAdmin = role === "MASTER_ADMIN" || email === "master@symptax.com";
+    
+    if (isMasterAdmin) {
+      if (domain !== "symptax.com") {
+        return NextResponse.json({ message: "Master Admin must use @symptax.com email domain." }, { status: 400 });
+      }
+    } else {
+      if (domain !== "gmail.com" && domain !== "email.com") {
+        return NextResponse.json({ message: "Email domain must be @gmail.com or @email.com" }, { status: 400 });
+      }
+    }
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { message: "User already exists" },
+        { message: "This email is already associated with an account." },
         { status: 400 }
       );
     }
@@ -52,9 +66,10 @@ export async function POST(req: Request) {
         publicId,
         isVerified: false,
         verificationDoc: verificationDoc || null,
-        // Automatically create a profile for every new user
         profile: {
-          create: {}
+          create: {
+            profileImage: profileImage || null
+          }
         }
       },
       include: {

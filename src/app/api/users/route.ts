@@ -10,9 +10,33 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    const doctorId = (session.user as any).id;
+
+    // Get patients who have an accepted connection with this doctor
+    const acceptedRequests = await prisma.friendRequest.findMany({
+      where: {
+        status: "ACCEPTED",
+        OR: [
+          { senderId: doctorId },
+          { receiverId: doctorId },
+        ],
+      },
+      select: {
+        senderId: true,
+        receiverId: true,
+      },
+    });
+
+    const connectedUserIds = acceptedRequests.map(req => 
+      req.senderId === doctorId ? req.receiverId : req.senderId
+    );
+
     const patients = await prisma.user.findMany({
-      where: { role: "PATIENT" },
-      select: { id: true, name: true, email: true },
+      where: { 
+        id: { in: connectedUserIds },
+        role: "PATIENT" 
+      },
+      select: { id: true, name: true, email: true, publicId: true },
     });
 
     return NextResponse.json({ patients }, { status: 200 });

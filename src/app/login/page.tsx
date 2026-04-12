@@ -33,7 +33,11 @@ export default function LoginPage() {
     setLoading(false);
 
     if (res?.error) {
-      setError("Invalid email or password");
+      if (res.error === "ACCOUNT_PENDING_VERIFICATION") {
+        setError("Your account is pending approval by the Master Admin. Please check back later.");
+      } else {
+        setError("Invalid email or password");
+      }
     } else {
       router.push("/dashboard");
     }

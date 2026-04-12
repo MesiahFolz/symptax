@@ -18,6 +18,21 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: "Missing other userId" }, { status: 400 });
     }
 
+    // Security: Verify accepted connection exists
+    const connection = await prisma.friendRequest.findFirst({
+      where: {
+        status: "ACCEPTED",
+        OR: [
+          { senderId: userId, receiverId: otherUserId },
+          { senderId: otherUserId, receiverId: userId },
+        ],
+      },
+    });
+
+    if (!connection) {
+      return NextResponse.json({ message: "No accepted connection found between users" }, { status: 403 });
+    }
+
     const messages = await prisma.message.findMany({
       where: {
         OR: [
@@ -46,6 +61,21 @@ export async function POST(req: Request) {
 
     if (!receiverId || !content) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+    }
+
+    // Security check
+    const connection = await prisma.friendRequest.findFirst({
+      where: {
+        status: "ACCEPTED",
+        OR: [
+          { senderId, receiverId },
+          { senderId: receiverId, receiverId: senderId },
+        ],
+      },
+    });
+
+    if (!connection) {
+      return NextResponse.json({ message: "No accepted connection found." }, { status: 403 });
     }
 
     const message = await prisma.message.create({
