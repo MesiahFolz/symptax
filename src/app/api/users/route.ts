@@ -27,8 +27,8 @@ export async function GET(req: Request) {
       },
     });
 
-    const connectedUserIds = acceptedRequests.map(req => 
-      req.senderId === doctorId ? req.receiverId : req.senderId
+    const connectedUserIds = acceptedRequests.map((conn: { senderId: string; receiverId: string }) => 
+      conn.senderId === doctorId ? conn.receiverId : conn.senderId
     );
 
     const patients = await prisma.user.findMany({

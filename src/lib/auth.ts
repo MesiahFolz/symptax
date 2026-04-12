@@ -10,6 +10,7 @@ declare module "next-auth" {
       role: string;
       publicId: string;
       isVerified: boolean;
+      image: string;
     } & DefaultSession["user"]
   }
 
@@ -17,6 +18,7 @@ declare module "next-auth" {
     role: string;
     publicId: string;
     isVerified: boolean;
+    image: string;
   }
 }
 
@@ -26,6 +28,7 @@ declare module "next-auth/jwt" {
     role: string;
     publicId: string;
     isVerified: boolean;
+    image: string;
   }
 }
 
@@ -43,6 +46,7 @@ export const authOptions: NextAuthOptions = {
         }
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
+          include: { profile: true },
         });
 
         if (!user) return null;
@@ -65,6 +69,7 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           publicId: user.publicId,
           isVerified: user.isVerified,
+          image: user.profile?.profileImage || '',
         };
       },
     }),
@@ -76,6 +81,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.publicId = user.publicId;
         token.isVerified = user.isVerified;
+        token.image = (user as any).image;
       }
       return token;
     },
@@ -85,6 +91,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role;
         session.user.publicId = token.publicId;
         session.user.isVerified = token.isVerified;
+        session.user.image = token.image as string;
       }
       return session;
     },

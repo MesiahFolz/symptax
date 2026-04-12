@@ -22,7 +22,7 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  
+
   const [profileImage, setProfileImage] = useState("");
   const [verificationDoc, setVerificationDoc] = useState("");
 
@@ -64,8 +64,8 @@ export default function RegisterPage() {
 
       if (type === 'PROFILE') setProfileImage(publicUrl);
       else setVerificationDoc(publicUrl);
-    } catch (err) {
-      setError("File upload failed. Please try again.");
+    } catch (err: any) {
+      setError(`File upload failed: ${err.message || String(err)}`);
     } finally {
       setUploading(false);
     }
@@ -92,10 +92,10 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          name, 
-          email, 
-          password, 
+        body: JSON.stringify({
+          name,
+          email,
+          password,
           role,
           profileImage,
           verificationDoc
@@ -120,14 +120,14 @@ export default function RegisterPage() {
     return (
       <div className="flex min-h-screen items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
         <Card className="w-full max-w-md text-center p-8">
-           <div className="flex justify-center mb-6">
-              <div className="bg-emerald-100 p-4 rounded-full">
-                 <CheckCircle2 className="h-12 w-12 text-emerald-600" />
-              </div>
-           </div>
-           <h2 className="text-2xl font-bold mb-2">Registration Submitted!</h2>
-           <p className="text-slate-500 mb-6">Your account is now pending approval by the Master Admin. You will be able to log in once verified.</p>
-           <p className="text-xs text-slate-400">Redirecting to login...</p>
+          <div className="flex justify-center mb-6">
+            <div className="bg-emerald-100 p-4 rounded-full">
+              <CheckCircle2 className="h-12 w-12 text-emerald-600" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Registration Submitted!</h2>
+          <p className="text-slate-500 mb-6">Your account is now pending approval by the Master Admin. You will be able to log in once verified.</p>
+          <p className="text-xs text-slate-400">Redirecting to login...</p>
         </Card>
       </div>
     );
@@ -160,40 +160,40 @@ export default function RegisterPage() {
                   {error}
                 </div>
               )}
-              
+
               <div className="grid grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Profile Photo</Label>
-                    <div className="relative group">
-                       <div className={`h-24 w-full rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-colors ${profileImage ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200 hover:border-blue-400'}`}>
-                          {profileImage ? (
-                             <img src={profileImage} className="h-full w-full object-cover rounded-xl" />
-                          ) : (
-                             <>
-                                <Camera className="h-6 w-6 text-slate-300" />
-                                <span className="text-[10px] text-slate-400 mt-1">Upload JPEG</span>
-                             </>
-                          )}
-                          <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onChange={(e) => handleFileUpload(e, 'PROFILE')} disabled={uploading} />
-                       </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Profile Photo</Label>
+                  <div className="relative group">
+                    <div className={`h-24 w-full rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-colors ${profileImage ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200 hover:border-blue-400'}`}>
+                      {profileImage ? (
+                        <img src={profileImage} className="h-full w-full object-cover rounded-xl" />
+                      ) : (
+                        <>
+                          <Camera className="h-6 w-6 text-slate-300" />
+                          <span className="text-[10px] text-slate-400 mt-1">Upload JPEG</span>
+                        </>
+                      )}
+                      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onChange={(e) => handleFileUpload(e, 'PROFILE')} disabled={uploading} />
                     </div>
-                 </div>
-                 <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">ID / License Pic</Label>
-                    <div className="relative group">
-                       <div className={`h-24 w-full rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-colors ${verificationDoc ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200 hover:border-blue-400'}`}>
-                          {verificationDoc ? (
-                             <img src={verificationDoc} className="h-full w-full object-cover rounded-xl" />
-                          ) : (
-                             <>
-                                <Upload className="h-6 w-6 text-slate-300" />
-                                <span className="text-[10px] text-slate-400 mt-1">Upload Photo</span>
-                             </>
-                          )}
-                          <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onChange={(e) => handleFileUpload(e, 'ID')} disabled={uploading} />
-                       </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">ID / License Pic</Label>
+                  <div className="relative group">
+                    <div className={`h-24 w-full rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-colors ${verificationDoc ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200 hover:border-blue-400'}`}>
+                      {verificationDoc ? (
+                        <img src={verificationDoc} className="h-full w-full object-cover rounded-xl" />
+                      ) : (
+                        <>
+                          <Upload className="h-6 w-6 text-slate-300" />
+                          <span className="text-[10px] text-slate-400 mt-1">Upload Photo</span>
+                        </>
+                      )}
+                      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onChange={(e) => handleFileUpload(e, 'ID')} disabled={uploading} />
                     </div>
-                 </div>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">
