@@ -17,16 +17,16 @@ STRICT GUARDRAILS:
 
 export async function POST(req: Request) {
   try {
-    const { prompt } = await req.json();
+    const { message, history } = await req.json();
 
-    if (!prompt) {
-      return NextResponse.json({ message: "Prompt is required" }, { status: 400 });
+    if (!message) {
+      return NextResponse.json({ message: "Message is required" }, { status: 400 });
     }
 
     if (!process.env.GOOGLE_AI_API_KEY) {
       return NextResponse.json({ 
         response: "SympTax AI Warning: Google Gemini API Key is missing. Please configure it in the environment variables." 
-      }, { status: 200 }); // Return as response to inform user in UI
+      }, { status: 200 }); 
     }
 
     const model = genAI.getGenerativeModel({ 
@@ -34,7 +34,16 @@ export async function POST(req: Request) {
       systemInstruction: SYSTEM_PROMPT
     });
 
-    const result = await model.generateContent(prompt);
+    const formattedHistory = (history || []).map((msg: any) => ({
+      role: msg.role === "bot" ? "model" : "user",
+      parts: [{ text: msg.content }],
+    }));
+
+    const chat = model.startChat({
+      history: formattedHistory,
+    });
+
+    const result = await chat.sendMessage(message);
     const responseText = result.response.text();
 
     const formattedResponse = `
