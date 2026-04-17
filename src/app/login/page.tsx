@@ -51,10 +51,7 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center justify-center">
-          <div className="bg-blue-600 p-3 rounded-full mb-4 shadow-sm">
-            <HeartPulse className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">SympTax</h1>
+          <img src="/symptax_logo.svg" alt="SympTax" className="h-16 w-auto mb-4" />
           <p className="text-slate-500 dark:text-slate-400 mt-2">Digital Health Record Platform</p>
         </div>
 
