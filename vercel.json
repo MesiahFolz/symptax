@@ -1,0 +1,8 @@
+{
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "buildCommand": "npx prisma generate && next build",
+  "outputDirectory": ".next",
+  "regions": ["sfo1"],
+  "cleanUrls": true
+}
