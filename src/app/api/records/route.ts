@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { title, content, type, patientId, isPinned, requiresAction, tags } = await req.json();
+    const { title, content, type, patientId, isPinned, requiresAction, tags, imageUrl } = await req.json();
 
     if (!title || !patientId || !type) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
@@ -75,11 +75,12 @@ export async function POST(req: Request) {
       data: {
         title,
         content,
-        type, // "DIAGNOSIS" | "PRESCRIPTION" | "NOTE" | "ALERT"
+        type,
         patientId,
         isPinned: isPinned || false,
         requiresAction: requiresAction || false,
         tags,
+        fileUrl: imageUrl || null,
       },
     });
 

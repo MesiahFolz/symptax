@@ -2,25 +2,40 @@
 
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, UserCheck, UserX, Image as ImageIcon, ExternalLink, Loader2, Search } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ShieldCheck, UserCheck, UserX, Image as ImageIcon, Loader2, Search, Users, Clock, User, Droplets, Ruler, Weight, Calendar, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
+interface UserProfile {
+  profileImage: string | null;
+  bloodType: string | null;
+  gender: string | null;
+  height: string | null;
+  weight: string | null;
+  dob: string | null;
+  address: string | null;
+}
+
+interface MemberUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  publicId: string;
+  isVerified: boolean;
+  verificationDoc: string | null;
+  createdAt: string;
+  profile: UserProfile | null;
+  records: Array<{ id: string; title: string; type: string; createdAt: string }>;
+}
+
 interface Membership {
   id: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    publicId: string;
-    isVerified: boolean;
-    verificationDoc: string | null;
-    createdAt: string;
-  };
+  user: MemberUser;
   status: string;
   createdAt: string;
 }
@@ -28,26 +43,18 @@ interface Membership {
 export default function MasterAdminPage() {
   const { data: session } = useSession();
   const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [branch, setBranch] = useState<{ id: string; name: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
-  const [diagnostics, setDiagnostics] = useState<any>(null);
-
-  const checkSystems = async () => {
-    try {
-      const res = await fetch("/api/master/diagnostics");
-      const data = await res.json();
-      setDiagnostics(data);
-    } catch (error) {
-       toast.error("Systems check failed");
-    }
-  };
+  const [selectedMember, setSelectedMember] = useState<MemberUser | null>(null);
 
   const fetchMemberships = async () => {
     try {
       const res = await fetch("/api/master/users");
       const data = await res.json();
       setMemberships(data.memberships || []);
-    } catch (error) {
+      setBranch(data.branch || null);
+    } catch {
       toast.error("Failed to load members");
     } finally {
       setLoading(false);
@@ -65,18 +72,22 @@ export default function MasterAdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isVerified: verify }),
       });
-      
       if (res.ok) {
-        toast.success(verify ? "Membership Approved" : "Membership Rejected");
+        toast.success(verify ? "Member Approved" : "Member Rejected");
         fetchMemberships();
       }
-    } catch (error) {
+    } catch {
       toast.error("Action failed");
     }
   };
 
-  const pendingMemberships = memberships.filter(m => m.status === "PENDING" && (m.user.name.toLowerCase().includes(filter.toLowerCase()) || m.user.publicId.includes(filter)));
-  const verifiedMemberships = memberships.filter(m => m.status === "APPROVED");
+  const filterFn = (m: Membership) =>
+    m.user.name.toLowerCase().includes(filter.toLowerCase()) ||
+    m.user.publicId.toLowerCase().includes(filter.toLowerCase()) ||
+    m.user.email.toLowerCase().includes(filter.toLowerCase());
+
+  const pendingMemberships = memberships.filter(m => m.status === "PENDING" && filterFn(m));
+  const approvedMemberships = memberships.filter(m => m.status === "APPROVED" && filterFn(m));
 
   if (session?.user?.role !== "MASTER_ADMIN") {
     return (
@@ -88,131 +99,218 @@ export default function MasterAdminPage() {
   }
 
   return (
-    <div className="space-y-8 p-1 md:p-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
-             <ShieldCheck className="h-8 w-8 text-blue-600" />
-             Branch Member Authority
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Review and approve requests for your hospital branch.</p>
-        </div>
-        <div className="relative w-full md:w-64">
-           <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-           <Input 
-             placeholder="Search by name or ST-ID..." 
-             className="pl-9"
-             value={filter}
-             onChange={(e) => setFilter(e.target.value)}
-           />
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-3xl p-8 text-white shadow-xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-md border border-white/10">
+              <ShieldCheck className="h-8 w-8 text-blue-100" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-extrabold tracking-tight">Branch Authority</h1>
+              <p className="text-blue-200 mt-0.5 font-medium">{branch?.name || "Manage your branch"}</p>
+            </div>
+          </div>
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-blue-300" />
+            <Input
+              placeholder="Search members..."
+              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-blue-300 rounded-xl"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-           <h2 className="text-xl font-bold flex items-center gap-2">
-              Pending Branch Requests 
-              <Badge variant="secondary" className="bg-orange-100 text-orange-700">{pendingMemberships.length}</Badge>
-           </h2>
+      <div className="flex gap-6">
+        {/* Left: Member List Tabs */}
+        <div className={`flex-1 min-w-0 ${selectedMember ? 'hidden lg:block' : ''}`}>
+          <Tabs defaultValue="pending">
+            <TabsList className="w-full mb-4 h-11 bg-slate-100 dark:bg-slate-900 rounded-xl">
+              <TabsTrigger value="pending" className="flex-1 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800">
+                <Clock className="w-4 h-4 mr-2" /> Pending
+                {pendingMemberships.length > 0 && (
+                  <Badge variant="destructive" className="ml-2 h-5 px-1.5">{pendingMemberships.length}</Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="approved" className="flex-1 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800">
+                <Users className="w-4 h-4 mr-2" /> Active Members
+                <Badge variant="secondary" className="ml-2 h-5 px-1.5">{approvedMemberships.length}</Badge>
+              </TabsTrigger>
+            </TabsList>
 
-           {loading ? (
-             <div className="flex justify-center p-12"><Loader2 className="h-8 w-8 animate-spin text-blue-600" /></div>
-           ) : pendingMemberships.length === 0 ? (
-             <Card className="bg-slate-50/50 border-dashed border-2">
-                <CardContent className="h-40 flex items-center justify-center text-slate-400 italic">
-                   No pending membership requests.
-                </CardContent>
-             </Card>
-           ) : (
-             pendingMemberships.map(m => (
-               <Card key={m.id} className="overflow-hidden border-slate-200 dark:border-slate-800 shadow-lg">
-                  <div className="p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                     <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-blue-600">
-                           {m.user.name[0]}
+            <TabsContent value="pending" className="space-y-3">
+              {loading ? (
+                <div className="flex justify-center p-12"><Loader2 className="h-8 w-8 animate-spin text-blue-600" /></div>
+              ) : pendingMemberships.length === 0 ? (
+                <Card className="border-dashed border-2">
+                  <CardContent className="h-32 flex items-center justify-center text-slate-400 italic">
+                    No pending membership requests.
+                  </CardContent>
+                </Card>
+              ) : (
+                pendingMemberships.map(m => (
+                  <Card
+                    key={m.id}
+                    onClick={() => setSelectedMember(m.user)}
+                    className={`cursor-pointer overflow-hidden border-0 shadow-md hover:shadow-lg transition-all ${selectedMember?.id === m.user.id ? 'ring-2 ring-blue-500' : ''}`}
+                  >
+                    <div className="p-4 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-11 w-11 rounded-2xl bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center font-bold text-amber-600 text-lg">
+                          {m.user.name[0]}
                         </div>
                         <div>
-                           <div className="flex items-center gap-2">
-                              <h3 className="font-bold text-lg">{m.user.name}</h3>
-                              <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest">{m.user.role}</Badge>
-                           </div>
-                           <p className="text-xs font-mono text-slate-500 uppercase">{m.user.publicId}</p>
-                           <p className="text-sm text-slate-400">{m.user.email}</p>
+                          <p className="font-bold text-slate-900 dark:text-white">{m.user.name}</p>
+                          <p className="text-xs font-mono text-slate-500">{m.user.publicId}</p>
+                          <Badge variant="outline" className="text-[9px] mt-0.5">{m.user.role}</Badge>
                         </div>
-                     </div>
-
-                     <div className="flex items-center gap-3 w-full md:w-auto">
+                      </div>
+                      <div className="flex gap-2 shrink-0">
                         {m.user.verificationDoc && (
-                          <Button variant="outline" size="sm" className="flex-1 md:flex-none gap-2" onClick={() => window.open(m.user.verificationDoc!, "_blank")}>
-                             <ImageIcon className="h-4 w-4" /> View ID
+                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); window.open(m.user.verificationDoc!, "_blank"); }}>
+                            <ImageIcon className="h-4 w-4" />
                           </Button>
                         )}
-                        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white flex-1 md:flex-none gap-2" onClick={() => handleVerify(m.user.id, true)}>
-                           <UserCheck className="h-4 w-4" /> Approve Member
+                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={(e) => { e.stopPropagation(); handleVerify(m.user.id, true); }}>
+                          <UserCheck className="h-4 w-4 mr-1" /> Approve
                         </Button>
-                     </div>
-                  </div>
-               </Card>
-             ))
-           )}
-        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
 
-        <div className="space-y-6">
-           <Card className="border-blue-100 dark:border-blue-900 shadow-lg bg-blue-50/20">
-              <CardHeader className="pb-3 text-center">
-                 <CardTitle className="text-sm uppercase tracking-widest font-black">System Health</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                 <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500 font-bold italic">RESEND MAIL</span>
-                    {diagnostics?.resend === "CONFIGURED" ? (
-                       <Badge className="bg-emerald-500">ACTIVE</Badge>
-                    ) : (
-                       <Badge variant="destructive">MISSING</Badge>
-                    )}
-                 </div>
-                 <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500 font-bold italic">VAULT STORAGE</span>
-                    {diagnostics?.storage === "READY" ? (
-                       <Badge className="bg-emerald-500">READY</Badge>
-                    ) : (
-                       <Badge variant="destructive">NOT FOUND</Badge>
-                    )}
-                 </div>
-                 <Button variant="outline" className="w-full text-[10px] h-8 font-black uppercase tracking-tighter" onClick={checkSystems}>
-                    Run Diagnostics
-                 </Button>
-              </CardContent>
-           </Card>
-
-           <h2 className="text-xl font-bold flex items-center gap-2">Active Members</h2>
-           <Card className="dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-              <CardContent className="p-0">
-                 {verifiedMemberships.length === 0 ? (
-                   <div className="p-8 text-center text-slate-400 text-sm">No active members yet.</div>
-                 ) : (
-                   <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                      {verifiedMemberships.slice(0, 5).map(m => (
-                        <div key={m.id} className="p-4 flex items-center justify-between group">
-                           <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
-                                 <UserCheck className="h-4 w-4 text-emerald-600" />
-                              </div>
-                              <div>
-                                 <p className="text-sm font-bold">{m.user.name}</p>
-                                 <p className="text-[10px] font-mono text-slate-400">{m.user.publicId}</p>
-                              </div>
-                           </div>
-                           <Button variant="ghost" size="icon" className="group-hover:opacity-100 opacity-0" onClick={() => handleVerify(m.user.id, false)}>
-                              <UserX className="h-4 w-4 text-slate-400 hover:text-red-500" />
-                           </Button>
+            <TabsContent value="approved" className="space-y-3">
+              {approvedMemberships.length === 0 ? (
+                <Card className="border-dashed border-2">
+                  <CardContent className="h-32 flex items-center justify-center text-slate-400 italic">
+                    No active members yet.
+                  </CardContent>
+                </Card>
+              ) : (
+                approvedMemberships.map(m => (
+                  <Card
+                    key={m.id}
+                    onClick={() => setSelectedMember(m.user)}
+                    className={`cursor-pointer overflow-hidden border-0 shadow-md hover:shadow-lg transition-all ${selectedMember?.id === m.user.id ? 'ring-2 ring-blue-500' : ''}`}
+                  >
+                    <div className="p-4 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        {m.user.profile?.profileImage ? (
+                          <img src={m.user.profile.profileImage} className="h-11 w-11 rounded-2xl object-cover" alt={m.user.name} />
+                        ) : (
+                          <div className="h-11 w-11 rounded-2xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center font-bold text-blue-600 text-lg">
+                            {m.user.name[0]}
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-bold text-slate-900 dark:text-white">{m.user.name}</p>
+                          <p className="text-xs font-mono text-slate-500">{m.user.publicId}</p>
+                          <Badge variant="outline" className="text-[9px] mt-0.5 border-emerald-300 text-emerald-600">{m.user.role}</Badge>
                         </div>
-                      ))}
-                   </div>
-                 )}
-              </CardContent>
-           </Card>
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleVerify(m.user.id, false); }}>
+                        <UserX className="h-4 w-4 text-slate-400 hover:text-red-500" />
+                      </Button>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
+
+        {/* Right: Member Detail Panel */}
+        {selectedMember && (
+          <div className="w-full lg:w-96 shrink-0 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-lg text-slate-900 dark:text-white">Member Info</h3>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedMember(null)}>Close</Button>
+            </div>
+
+            <Card className="overflow-hidden border-0 shadow-xl dark:bg-slate-900 rounded-3xl">
+              <div className="h-20 bg-gradient-to-r from-blue-600 to-indigo-600" />
+              <div className="px-6 pb-6 -mt-10">
+                <div className="flex items-end gap-4 mb-4">
+                  {selectedMember.profile?.profileImage ? (
+                    <img src={selectedMember.profile.profileImage} className="h-20 w-20 rounded-2xl object-cover border-4 border-white dark:border-slate-900 shadow-lg" />
+                  ) : (
+                    <div className="h-20 w-20 rounded-2xl bg-blue-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-white dark:border-slate-900 shadow-lg">
+                      {selectedMember.name[0]}
+                    </div>
+                  )}
+                  <div className="pb-1">
+                    <p className="font-extrabold text-slate-900 dark:text-white text-xl">{selectedMember.name}</p>
+                    <p className="font-mono text-xs text-slate-500">{selectedMember.publicId}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                    <span className="text-slate-500 font-medium flex items-center gap-2"><User className="h-4 w-4" /> Email</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 text-right truncate max-w-[180px]">{selectedMember.email}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                    <span className="text-slate-500 font-medium flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Role</span>
+                    <Badge variant="outline" className="capitalize">{selectedMember.role.toLowerCase()}</Badge>
+                  </div>
+                  {selectedMember.profile?.gender && (
+                    <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500 font-medium">Gender</span>
+                      <span className="font-semibold">{selectedMember.profile.gender}</span>
+                    </div>
+                  )}
+                  {selectedMember.profile?.bloodType && (
+                    <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500 font-medium flex items-center gap-2"><Droplets className="h-4 w-4 text-red-500" /> Blood Type</span>
+                      <span className="font-bold text-red-600">{selectedMember.profile.bloodType}</span>
+                    </div>
+                  )}
+                  {selectedMember.profile?.height && (
+                    <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500 font-medium flex items-center gap-2"><Ruler className="h-4 w-4" /> Height</span>
+                      <span className="font-semibold">{selectedMember.profile.height}</span>
+                    </div>
+                  )}
+                  {selectedMember.profile?.weight && (
+                    <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500 font-medium flex items-center gap-2"><Weight className="h-4 w-4" /> Weight</span>
+                      <span className="font-semibold">{selectedMember.profile.weight}</span>
+                    </div>
+                  )}
+                  {selectedMember.profile?.dob && (
+                    <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500 font-medium flex items-center gap-2"><Calendar className="h-4 w-4" /> Date of Birth</span>
+                      <span className="font-semibold">{new Date(selectedMember.profile.dob).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                    <span className="text-slate-500 font-medium flex items-center gap-2"><Calendar className="h-4 w-4" /> Joined</span>
+                    <span className="font-semibold">{new Date(selectedMember.createdAt).toLocaleDateString()}</span>
+                  </div>
+
+                  {selectedMember.records && selectedMember.records.length > 0 && (
+                    <div className="pt-2">
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2"><FileText className="h-3.5 w-3.5" /> Recent Records</p>
+                      <div className="space-y-2">
+                        {selectedMember.records.map(r => (
+                          <div key={r.id} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2.5">
+                            <span className="text-sm font-medium truncate max-w-[160px]">{r.title}</span>
+                            <Badge variant="secondary" className="text-[9px] shrink-0">{r.type}</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

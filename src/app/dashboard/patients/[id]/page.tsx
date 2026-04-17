@@ -4,7 +4,8 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState, use } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { UserCircle, Plus, Send, AlertTriangle, ShieldCheck, History, Bell, Loader2 } from "lucide-react";
+import { UserCircle, Plus, AlertTriangle, History, Bell, Loader2, ImagePlus, X } from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
@@ -24,6 +25,8 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   // Notification states
   const [notificationMsg, setNotificationMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     params.then((p) => {
@@ -31,6 +34,28 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       fetchRecords(p.id);
     });
   }, [params]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const fileExt = file.name.split(".").pop();
+      const fileName = `record-${Date.now()}.${fileExt}`;
+      const { error } = await supabase.storage.from("medical-files").upload(`records/${fileName}`, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("medical-files").getPublicUrl(`records/${fileName}`);
+      setImageUrl(publicUrl);
+    } catch (e) {
+      console.error("Image upload failed:", e);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const fetchRecords = async (id: string) => {
     try {
@@ -53,13 +78,14 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       await fetch("/api/records", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patientId, title, content, type, isPinned, requiresAction }),
+        body: JSON.stringify({ patientId, title, content, type, isPinned, requiresAction, imageUrl }),
       });
       fetchRecords(patientId);
       setTitle("");
       setContent("");
       setIsPinned(false);
       setRequiresAction(false);
+      setImageUrl("");
     } catch(e) { console.error(e) }
     finally { setSubmitting(false) }
   };
@@ -142,6 +168,24 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                    />
                 </div>
                 
+
+                {/* Image Attachment */}
+                <div className="space-y-2">
+                  <Label className="dark:text-slate-300 font-bold text-xs uppercase tracking-wider">Attach Image (Optional)</Label>
+                  {imageUrl ? (
+                    <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                      <img src={imageUrl} alt="Attachment" className="w-full max-h-48 object-cover" />
+                      <button type="button" onClick={() => setImageUrl("")} className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center h-24 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all">
+                      {uploading ? (<Loader2 className="h-6 w-6 animate-spin text-blue-600" />) : (<><ImagePlus className="h-6 w-6 text-slate-400 mb-1.5" /><span className="text-xs text-slate-500">Click to attach</span></>)}
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                    </label>
+                  )}
+                </div>
                 <div className="flex flex-col sm:flex-row gap-3 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
                    <label className="flex-1 flex items-center gap-3 cursor-pointer group">
                      <div className="relative flex items-center">
@@ -212,6 +256,12 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                         <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest">{r.type}</span>
                      </div>
                      <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed border-l-2 border-slate-100 dark:border-slate-800 pl-4">{r.content}</p>
+
+                     {r.fileUrl && (
+                       <div className="mt-3">
+                         <img src={r.fileUrl} alt="Attached scan" className="rounded-xl max-h-60 w-full object-cover border border-slate-100 dark:border-slate-800 shadow-sm" />
+                       </div>
+                     )}
                      
                      <div className="flex gap-2 mt-4">
                        {r.isPinned && <span className="text-[10px] text-blue-700 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-300 px-2.5 py-1 rounded-full font-bold uppercase">Important PIN</span>}

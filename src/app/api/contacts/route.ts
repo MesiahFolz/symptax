@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// GET contacts for the current user (people they can message)
+// GET contacts for the current user (only accepted friend connections)
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -12,52 +12,27 @@ export async function GET(req: Request) {
     }
 
     const userId = (session.user as any).id;
-    const userRole = (session.user as any).role;
 
-    let contacts: any[] = [];
+    // Find all accepted friend/network connections
+    const acceptedRequests = await prisma.friendRequest.findMany({
+      where: {
+        status: "ACCEPTED",
+        OR: [
+          { senderId: userId },
+          { receiverId: userId },
+        ],
+      },
+      include: {
+        sender: { select: { id: true, name: true, email: true, role: true } },
+        receiver: { select: { id: true, name: true, email: true, role: true } },
+      }
+    });
 
-    if (userRole === "PATIENT") {
-      // Patients can message doctors who have records for them
-      const records = await prisma.medicalRecord.findMany({
-        where: { patientId: userId },
-        select: { patientId: true },
-      });
-
-      // Also find any doctor they've exchanged messages with
-      const messagedUsers = await prisma.message.findMany({
-        where: {
-          OR: [{ senderId: userId }, { receiverId: userId }],
-        },
-        select: { senderId: true, receiverId: true },
-      });
-
-      const contactIds = new Set<string>();
-      messagedUsers.forEach((m) => {
-        if (m.senderId !== userId) contactIds.add(m.senderId);
-        if (m.receiverId !== userId) contactIds.add(m.receiverId);
-      });
-
-      // Get all doctors (patients can message any doctor)
-      const doctors = await prisma.user.findMany({
-        where: { role: "DOCTOR" },
-        select: { id: true, name: true, email: true, role: true },
-      });
-
-      contacts = doctors;
-    } else if (userRole === "DOCTOR") {
-      // Doctors can see patients they have records for + all other doctors
-      const patients = await prisma.user.findMany({
-        where: { role: "PATIENT" },
-        select: { id: true, name: true, email: true, role: true },
-      });
-
-      const doctors = await prisma.user.findMany({
-        where: { role: "DOCTOR", NOT: { id: userId } },
-        select: { id: true, name: true, email: true, role: true },
-      });
-
-      contacts = [...patients, ...doctors];
-    }
+    // Extract the OTHER person from each connection
+    const contacts = acceptedRequests.map(fr => {
+      const other = fr.senderId === userId ? fr.receiver : fr.sender;
+      return other;
+    });
 
     // For each contact, get the last message
     const contactsWithLastMessage = await Promise.all(
@@ -70,14 +45,6 @@ export async function GET(req: Request) {
             ],
           },
           orderBy: { createdAt: "desc" },
-        });
-
-        const unreadCount = await prisma.message.count({
-          where: {
-            senderId: contact.id,
-            receiverId: userId,
-            // We'd need a `read` field — for now skip
-          },
         });
 
         return {
@@ -102,3 +69,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
+
+

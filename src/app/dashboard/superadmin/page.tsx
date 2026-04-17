@@ -182,43 +182,73 @@ export default function SuperAdminPage() {
         </TabsContent>
 
         <TabsContent value="users">
-           <Card className="dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl overflow-hidden">
-             <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-bold text-slate-500 dark:text-slate-400">
-                    <tr>
-                      <th className="px-6 py-4">Name / Public ID</th>
-                      <th className="px-6 py-4">Email</th>
-                      <th className="px-6 py-4">Role</th>
-                      <th className="px-6 py-4">Global Verification</th>
-                      <th className="px-6 py-4">Registered Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                     {users.map(user => (
-                       <tr key={user.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                         <td className="px-6 py-4">
-                            <p className="font-bold text-slate-900 dark:text-slate-100">{user.name}</p>
-                            <p className="font-mono text-xs text-slate-500 mt-0.5">{user.publicId}</p>
-                         </td>
-                         <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{user.email}</td>
-                         <td className="px-6 py-4">
-                            <Badge variant="outline" className={`text-[10px] tracking-widest ${user.role === 'SUPER_ADMIN' ? 'border-purple-200 text-purple-700 bg-purple-50' : user.role === 'MASTER_ADMIN' ? 'border-blue-200 text-blue-700 bg-blue-50' : 'border-slate-200 text-slate-600'}`}>
-                              {user.role}
-                            </Badge>
-                         </td>
-                         <td className="px-6 py-4">
-                            {user.isVerified ? <CheckCircle className="h-5 w-5 text-emerald-500" /> : <XCircle className="h-5 w-5 text-slate-300" />}
-                         </td>
-                         <td className="px-6 py-4 text-slate-500 text-xs">
-                            {new Date(user.createdAt).toLocaleDateString()}
-                         </td>
-                       </tr>
+           <div className="space-y-3">
+             {users.map(user => (
+               <Card key={user.id} className="dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:shadow-md transition-all">
+                 <div className="p-5 flex flex-col md:flex-row gap-4 md:items-center">
+                   <div className="flex items-center gap-4 flex-1 min-w-0">
+                     {user.profile?.profileImage ? (
+                       <img src={user.profile.profileImage} className="h-12 w-12 rounded-2xl object-cover shrink-0" />
+                     ) : (
+                       <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
+                         {user.name[0]}
+                       </div>
+                     )}
+                     <div className="min-w-0">
+                       <div className="flex items-center gap-2 flex-wrap">
+                         <p className="font-bold text-slate-900 dark:text-slate-100">{user.name}</p>
+                         <Badge variant="outline" className={`text-[9px] tracking-widest shrink-0 ${user.role === 'SUPER_ADMIN' ? 'border-purple-300 text-purple-600 bg-purple-50' : user.role === 'MASTER_ADMIN' ? 'border-blue-300 text-blue-600 bg-blue-50' : user.role === 'DOCTOR' ? 'border-emerald-300 text-emerald-600 bg-emerald-50' : 'border-slate-200 text-slate-600'}`}>
+                           {user.role}
+                         </Badge>
+                         {user.isVerified ? (
+                           <Badge className="text-[9px] bg-emerald-500 shrink-0">VERIFIED</Badge>
+                         ) : (
+                           <Badge variant="outline" className="text-[9px] text-amber-600 border-amber-300 shrink-0">PENDING</Badge>
+                         )}
+                       </div>
+                       <p className="font-mono text-xs text-slate-500 mt-0.5">{user.publicId}</p>
+                       <p className="text-sm text-slate-500 truncate">{user.email}</p>
+                     </div>
+                   </div>
+                   <div className="flex flex-wrap gap-3 text-xs text-slate-500 md:text-right shrink-0">
+                     {user.profile?.bloodType && (
+                       <div className="bg-red-50 dark:bg-red-900/10 px-3 py-1.5 rounded-lg">
+                         <span className="font-bold text-red-600">{user.profile.bloodType}</span>
+                       </div>
+                     )}
+                     {user.profile?.gender && (
+                       <div className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">
+                         <span className="font-medium">{user.profile.gender}</span>
+                       </div>
+                     )}
+                     {user.hospital?.name && (
+                       <div className="bg-blue-50 dark:bg-blue-900/10 px-3 py-1.5 rounded-lg">
+                         <span className="font-medium text-blue-700 dark:text-blue-300">{user.hospital.name}</span>
+                       </div>
+                     )}
+                     {user.branch?.name && (
+                       <div className="bg-indigo-50 dark:bg-indigo-900/10 px-3 py-1.5 rounded-lg">
+                         <span className="font-medium text-indigo-700 dark:text-indigo-300">{user.branch.name}</span>
+                       </div>
+                     )}
+                     <div className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">
+                       {new Date(user.createdAt).toLocaleDateString()}
+                     </div>
+                   </div>
+                 </div>
+                 {user.memberships && user.memberships.length > 0 && (
+                   <div className="px-5 pb-4 flex flex-wrap gap-2">
+                     <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold self-center">Branches:</span>
+                     {user.memberships.map((m: any) => (
+                       <span key={m.branch.id} className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${m.isPrimary ? 'bg-blue-600 text-white' : m.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                         {m.branch.name} · {m.isPrimary ? 'ACTIVE' : m.status}
+                       </span>
                      ))}
-                  </tbody>
-                </table>
-             </div>
-           </Card>
+                   </div>
+                 )}
+               </Card>
+             ))}
+           </div>
         </TabsContent>
       </Tabs>
     </div>

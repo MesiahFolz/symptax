@@ -10,15 +10,36 @@ export async function GET() {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    // All branches with full hospital + master admin info
     const branches = await prisma.branch.findMany({
       include: {
         hospital: true,
-        masterAdmin: { select: { name: true, email: true } },
-        _count: { select: { users: true, memberships: true } }
+        masterAdmin: {
+          select: { id: true, name: true, email: true, publicId: true, isVerified: true }
+        },
+        memberships: {
+          where: { status: "APPROVED" },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                publicId: true,
+                isVerified: true,
+                createdAt: true,
+                profile: { select: { profileImage: true, bloodType: true, gender: true } }
+              }
+            }
+          }
+        },
+        _count: { select: { memberships: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
 
+    // All users globally
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -28,6 +49,16 @@ export async function GET() {
         publicId: true,
         isVerified: true,
         createdAt: true,
+        hospital: { select: { name: true } },
+        branch: { select: { name: true } },
+        profile: { select: { profileImage: true, bloodType: true, gender: true } },
+        memberships: {
+          select: {
+            status: true,
+            isPrimary: true,
+            branch: { select: { id: true, name: true } }
+          }
+        }
       },
       orderBy: { createdAt: 'desc' }
     });

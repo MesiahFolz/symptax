@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
+// GET all members of the managed branch with full profile info
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -11,15 +12,15 @@ export async function GET() {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    const userId = (session.user as any).id;
+    const masterAdminId = (session.user as any).id;
 
     const managedBranch = await prisma.branch.findUnique({
-      where: { masterAdminId: userId },
-      select: { id: true }
+      where: { masterAdminId },
+      select: { id: true, name: true }
     });
 
     if (!managedBranch) {
-      return NextResponse.json({ memberships: [] }, { status: 200 });
+      return NextResponse.json({ memberships: [], branch: null }, { status: 200 });
     }
 
     const memberships = await prisma.branchMembership.findMany({
@@ -35,13 +36,29 @@ export async function GET() {
             isVerified: true,
             verificationDoc: true,
             createdAt: true,
+            profile: {
+              select: {
+                profileImage: true,
+                bloodType: true,
+                gender: true,
+                height: true,
+                weight: true,
+                dob: true,
+                address: true,
+              }
+            },
+            records: {
+              orderBy: { createdAt: "desc" },
+              take: 3,
+              select: { id: true, title: true, type: true, createdAt: true }
+            }
           }
         }
       },
       orderBy: { createdAt: "desc" }
     });
 
-    return NextResponse.json({ memberships });
+    return NextResponse.json({ memberships, branch: managedBranch });
   } catch (error) {
     return NextResponse.json({ message: "Error fetching memberships" }, { status: 500 });
   }
