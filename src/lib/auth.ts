@@ -11,6 +11,8 @@ declare module "next-auth" {
       publicId: string;
       isVerified: boolean;
       image: string;
+      hospitalId?: string | null;
+      branchId?: string | null;
     } & DefaultSession["user"]
   }
 
@@ -19,6 +21,8 @@ declare module "next-auth" {
     publicId: string;
     isVerified: boolean;
     image: string;
+    hospitalId?: string | null;
+    branchId?: string | null;
   }
 }
 
@@ -29,6 +33,8 @@ declare module "next-auth/jwt" {
     publicId: string;
     isVerified: boolean;
     image: string;
+    hospitalId?: string | null;
+    branchId?: string | null;
   }
 }
 
@@ -58,7 +64,7 @@ export const authOptions: NextAuthOptions = {
 
         if (!isPasswordValid) return null;
 
-        if (!user.isVerified && user.role !== "MASTER_ADMIN") {
+        if (!user.isVerified && user.role !== "MASTER_ADMIN" && user.role !== "SUPER_ADMIN") {
           throw new Error("ACCOUNT_PENDING_VERIFICATION");
         }
 
@@ -70,6 +76,8 @@ export const authOptions: NextAuthOptions = {
           publicId: user.publicId,
           isVerified: user.isVerified,
           image: user.profile?.profileImage || '',
+          hospitalId: (user as any).hospitalId,
+          branchId: (user as any).branchId,
         };
       },
     }),
@@ -82,6 +90,8 @@ export const authOptions: NextAuthOptions = {
         token.publicId = user.publicId;
         token.isVerified = user.isVerified;
         token.image = (user as any).image;
+        token.hospitalId = (user as any).hospitalId;
+        token.branchId = (user as any).branchId;
       }
       return token;
     },
@@ -92,6 +102,8 @@ export const authOptions: NextAuthOptions = {
         session.user.publicId = token.publicId;
         session.user.isVerified = token.isVerified;
         session.user.image = token.image as string;
+        session.user.hospitalId = token.hospitalId as string;
+        session.user.branchId = token.branchId as string;
       }
       return session;
     },

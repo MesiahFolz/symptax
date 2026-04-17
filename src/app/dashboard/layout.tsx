@@ -111,17 +111,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <div className="p-4 border-t border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3 mb-4 px-3">
-            {session?.user?.image ? (
-              <img
-                src={session.user.image}
-                alt="Profile"
-                className="h-10 w-10 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
-              />
-            ) : (
-              <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold">
-                {session?.user?.name?.charAt(0) || "U"}
-              </div>
-            )}
+            <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold overflow-hidden shadow-sm">
+              {session?.user?.image ? (
+                <img src={session.user.image} alt={session.user.name || "User"} className="h-full w-full object-cover" />
+              ) : (
+                session?.user?.name?.charAt(0) || "U"
+              )}
+            </div>
             <div className="overflow-hidden">
               <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{session?.user?.name}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400 truncate capitalize">{(session?.user as any)?.role?.toLowerCase()}</p>

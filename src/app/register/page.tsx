@@ -65,7 +65,8 @@ export default function RegisterPage() {
       if (type === 'PROFILE') setProfileImage(publicUrl);
       else setVerificationDoc(publicUrl);
     } catch (err: any) {
-      setError(`File upload failed: ${err.message || String(err)}`);
+      console.error("UPLOAD_ERROR:", err);
+      setError(`Upload failed: ${err.message || 'Unknown error'}. Check if 'medical-files' bucket is public.`);
     } finally {
       setUploading(false);
     }

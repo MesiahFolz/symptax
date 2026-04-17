@@ -25,11 +25,17 @@ model User {
   email           String         @unique
   password        String
   name            String
-  role            String         @default("PATIENT") // Keep as string for now to avoid migration friction with existing data, but we'll use "MASTER_ADMIN" as a value
+  role            String         @default("PATIENT") // PATIENT, DOCTOR, MASTER_ADMIN, SUPER_ADMIN
   isVerified      Boolean        @default(false)
   publicId        String         @unique // For ST-XXXX format
   verificationDoc String?        // URL to ID/license image
   
+  // Scoping (Multi-Tenancy)
+  hospitalId      String?
+  hospital        Hospital?      @relation(fields: [hospitalId], references: [id])
+  branchId        String?
+  branch          Branch?        @relation(fields: [branchId], references: [id])
+
   // Profile (1-to-1)
   profile         Profile?
 
@@ -43,6 +49,13 @@ model User {
   
   notifications   Notification[]   @relation("UserNotifications")
   
+  // Appointments
+  appointmentsDoc  Appointment[]   @relation("DoctorAppointments")
+  appointmentsPat  Appointment[]   @relation("PatientAppointments")
+
+  // AI Chat
+  aiConversations  AiConversation[] @relation("UserAiConversations")
+  
   // Friend Requests (Social)
   sentRequests     FriendRequest[] @relation("RequestSender")
   receivedRequests  FriendRequest[] @relation("RequestReceiver")
@@ -51,8 +64,88 @@ model User {
   sentInvites      DoctorInvitation[] @relation("DoctorInvite")
   receivedInvites  DoctorInvitation[] @relation("PatientInvite")
 
+  // Branch Governance
+  managedBranch    Branch?         @relation("BranchMaster")
+
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+}
+
+model Hospital {
+  id          String   @id @default(uuid())
+  name        String
+  logo        String?
+  domain      String?  @unique
+  branches    Branch[]
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Branch {
+  id            String   @id @default(uuid())
+  name          String
+  address       String?
+  hospitalId    String
+  hospital      Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  
+  masterAdminId String?  @unique
+  masterAdmin   User?    @relation("BranchMaster", fields: [masterAdminId], references: [id])
+  
+  users         User[]
+  appointments  Appointment[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model HospitalRequest {
+  id              String   @id @default(uuid())
+  requesterId     String
+  hospitalName    String
+  branchName      String
+  branchAddress   String
+  documentUrl     String?  // Legal/Clinical docs
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  adminNotes      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Appointment {
+  id          String   @id @default(uuid())
+  doctorId    String
+  doctor      User     @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  patientId   String
+  patient     User     @relation("PatientAppointments", fields: [patientId], references: [id])
+  branchId    String
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  
+  startTime   DateTime
+  endTime     DateTime?
+  status      String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED, COMPLETED
+  meetingUrl  String?  // For Daily.co linkage
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AiConversation {
+  id        String      @id @default(uuid())
+  userId    String
+  user      User        @relation("UserAiConversations", fields: [userId], references: [id], onDelete: Cascade)
+  title     String?
+  messages  AiMessage[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model AiMessage {
+  id             String         @id @default(uuid())
+  conversationId String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String         // user, bot
+  content        String
+  createdAt      DateTime       @default(now())
 }
 
 model Profile {
