@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import DailyIframe from "@daily-co/daily-js";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Video, PhoneOff, Maximize, Mic, VideoOff } from "lucide-react";
 
-export default function VideoCallPage() {
+function VideoCallContent() {
   const searchParams = useSearchParams();
   const roomUrl = searchParams.get("url");
   const meetingId = searchParams.get("id");
@@ -38,7 +38,7 @@ export default function VideoCallPage() {
     return () => {
       frame.destroy();
     };
-  }, [roomUrl, router]);
+  }, [roomUrl, router, callFrame]);
 
   if (!roomUrl) {
     return (
@@ -82,6 +82,18 @@ export default function VideoCallPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function VideoCallPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <VideoCallContent />
+    </Suspense>
   );
 }
 
