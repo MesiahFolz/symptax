@@ -3,14 +3,8 @@
 import React, { useState, useEffect } from "react";
 
 const LogoAnimation: React.FC = () => {
-  const [animationKey, setAnimationKey] = useState(0);
-
-  const replayAnimation = () => {
-    setAnimationKey((prev) => prev + 1);
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center py-12 gap-12" key={animationKey}>
+    <div className="flex flex-col items-center justify-center py-12 gap-12">
       <style>{`
         .logo-scene {
           display: flex;
@@ -178,13 +172,6 @@ const LogoAnimation: React.FC = () => {
             letterSpacing="2.5" x="1" y="95">SMART HEALTH CONSULTATIONS</text>
         </svg>
       </div>
-
-      <button 
-        className="px-7 py-2.5 bg-transparent border-[1.5px] border-teal-600 text-teal-600 dark:border-teal-400 dark:text-teal-400 rounded-full text-sm font-medium tracking-wide transition-all hover:bg-teal-600 hover:text-white dark:hover:bg-teal-400 dark:hover:text-slate-900"
-        onClick={replayAnimation}
-      >
-        Replay animation
-      </button>
     </div>
   );
 };
