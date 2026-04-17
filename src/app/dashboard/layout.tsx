@@ -31,7 +31,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <img src="/symptax_logo.svg" alt="SympTax" className="h-8 w-auto" />
+          <img src="/symptax_logo.svg" alt="SympTax" className="h-12 w-auto" />
           <button onClick={closeMenu} className="md:hidden p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
             <X className="h-6 w-6" />
           </button>
@@ -147,7 +147,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <Menu className="h-6 w-6" />
             </button>
-            <img src="/symptax_logo.svg" alt="SympTax" className="h-7 w-auto md:hidden" />
+            <img src="/symptax_logo.svg" alt="SympTax" className="h-11 w-auto md:hidden" />
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />

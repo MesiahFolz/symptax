@@ -2,13 +2,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HeartPulse, Stethoscope, ShieldCheck, WifiOff } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import LogoAnimation from "@/components/LogoAnimation";
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
       <header className="px-6 py-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <img src="/symptax_logo.svg" alt="SympTax" className="h-9 w-auto" />
+          <img src="/symptax_logo.svg" alt="SympTax" className="h-14 w-auto" />
         </div>
         <div className="flex items-center gap-3">
           <ThemeToggle />
@@ -37,6 +38,8 @@ export default function Home() {
             Your Health Records, <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500 dark:from-blue-400 dark:to-indigo-300">Simplified.</span>
           </h1>
+
+          <LogoAnimation />
           <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
             SympTax makes it easy for patients and doctors to connect, view prescriptions, and access medical history anytime, even offline.
           </p>
@@ -114,7 +117,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-center md:text-left">
            <div>
               <div className="flex items-center gap-2 justify-center md:justify-start mb-4">
-                <img src="/symptax_logo.svg" alt="SympTax" className="h-8 w-auto" />
+                <img src="/symptax_logo.svg" alt="SympTax" className="h-12 w-auto" />
               </div>
               <p className="text-slate-500 dark:text-slate-400 max-w-sm">
                 Empowering patients and doctors through secure digital records and remote health insights.

@@ -155,7 +155,7 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-md space-y-6 pt-10 pb-10">
         <div className="flex flex-col items-center justify-center">
-          <img src="/symptax_logo.svg" alt="SympTax" className="h-16 w-auto mb-4" />
+          <img src="/symptax_logo.svg" alt="SympTax" className="h-28 w-auto mb-4" />
           <p className="text-slate-500 dark:text-slate-400 mt-2 italic">Official Identity Registration</p>
         </div>
 

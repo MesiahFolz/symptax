@@ -125,7 +125,7 @@ export default function ResetPasswordPage() {
 
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center justify-center text-center">
-          <img src="/symptax_logo.svg" alt="SympTax" className="h-16 w-auto mb-2" />
+          <img src="/symptax_logo.svg" alt="SympTax" className="h-28 w-auto mb-4" />
         </div>
         <Suspense fallback={<div>Loading...</div>}>
            <ResetPasswordForm />
