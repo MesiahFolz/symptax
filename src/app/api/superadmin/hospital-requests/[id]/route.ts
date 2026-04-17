@@ -45,8 +45,20 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
         where: { id: request.requesterId },
         data: {
           role: "MASTER_ADMIN",
+          isVerified: true,
           hospitalId: hospital.id,
           branchId: branch.id
+        }
+      });
+
+      // 4. Insert Primary BranchMembership for Master Admin
+      await prisma.branchMembership.create({
+        data: {
+          userId: request.requesterId,
+          branchId: branch.id,
+          status: "APPROVED",
+          role: "MASTER_ADMIN",
+          isPrimary: true
         }
       });
     }

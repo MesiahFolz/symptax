@@ -9,20 +9,25 @@ import { ShieldCheck, UserCheck, UserX, Image as ImageIcon, ExternalLink, Loader
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
-interface User {
+interface Membership {
   id: string;
-  name: string;
-  email: string;
-  role: string;
-  publicId: string;
-  isVerified: boolean;
-  verificationDoc: string | null;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    publicId: string;
+    isVerified: boolean;
+    verificationDoc: string | null;
+    createdAt: string;
+  };
+  status: string;
   createdAt: string;
 }
 
 export default function MasterAdminPage() {
   const { data: session } = useSession();
-  const [users, setUsers] = useState<User[]>([]);
+  const [memberships, setMemberships] = useState<Membership[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
   const [diagnostics, setDiagnostics] = useState<any>(null);
@@ -37,21 +42,20 @@ export default function MasterAdminPage() {
     }
   };
 
-  const fetchUsers = async () => {
-    // ...
+  const fetchMemberships = async () => {
     try {
       const res = await fetch("/api/master/users");
       const data = await res.json();
-      setUsers(data.users || []);
+      setMemberships(data.memberships || []);
     } catch (error) {
-      toast.error("Failed to load users");
+      toast.error("Failed to load members");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchMemberships();
   }, []);
 
   const handleVerify = async (userId: string, verify: boolean) => {
@@ -63,16 +67,16 @@ export default function MasterAdminPage() {
       });
       
       if (res.ok) {
-        toast.success(verify ? "User Verified" : "Verification Reset");
-        fetchUsers();
+        toast.success(verify ? "Membership Approved" : "Membership Rejected");
+        fetchMemberships();
       }
     } catch (error) {
       toast.error("Action failed");
     }
   };
 
-  const pendingUsers = users.filter(u => !u.isVerified && (u.name.toLowerCase().includes(filter.toLowerCase()) || u.publicId.includes(filter)));
-  const verifiedUsers = users.filter(u => u.isVerified);
+  const pendingMemberships = memberships.filter(m => m.status === "PENDING" && (m.user.name.toLowerCase().includes(filter.toLowerCase()) || m.user.publicId.includes(filter)));
+  const verifiedMemberships = memberships.filter(m => m.status === "APPROVED");
 
   if (session?.user?.role !== "MASTER_ADMIN") {
     return (
@@ -89,9 +93,9 @@ export default function MasterAdminPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
              <ShieldCheck className="h-8 w-8 text-blue-600" />
-             Master Verification Authority
+             Branch Member Authority
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Review and approve clinical credentials for Doctors and Patients.</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Review and approve requests for your hospital branch.</p>
         </div>
         <div className="relative w-full md:w-64">
            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -107,44 +111,44 @@ export default function MasterAdminPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
            <h2 className="text-xl font-bold flex items-center gap-2">
-              Pending Verification 
-              <Badge variant="secondary" className="bg-orange-100 text-orange-700">{pendingUsers.length}</Badge>
+              Pending Branch Requests 
+              <Badge variant="secondary" className="bg-orange-100 text-orange-700">{pendingMemberships.length}</Badge>
            </h2>
 
            {loading ? (
              <div className="flex justify-center p-12"><Loader2 className="h-8 w-8 animate-spin text-blue-600" /></div>
-           ) : pendingUsers.length === 0 ? (
+           ) : pendingMemberships.length === 0 ? (
              <Card className="bg-slate-50/50 border-dashed border-2">
                 <CardContent className="h-40 flex items-center justify-center text-slate-400 italic">
-                   No pending verification requests.
+                   No pending membership requests.
                 </CardContent>
              </Card>
            ) : (
-             pendingUsers.map(user => (
-               <Card key={user.id} className="overflow-hidden border-slate-200 dark:border-slate-800 shadow-lg">
+             pendingMemberships.map(m => (
+               <Card key={m.id} className="overflow-hidden border-slate-200 dark:border-slate-800 shadow-lg">
                   <div className="p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                      <div className="flex items-center gap-4">
                         <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-blue-600">
-                           {user.name[0]}
+                           {m.user.name[0]}
                         </div>
                         <div>
                            <div className="flex items-center gap-2">
-                              <h3 className="font-bold text-lg">{user.name}</h3>
-                              <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest">{user.role}</Badge>
+                              <h3 className="font-bold text-lg">{m.user.name}</h3>
+                              <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest">{m.user.role}</Badge>
                            </div>
-                           <p className="text-xs font-mono text-slate-500 uppercase">{user.publicId}</p>
-                           <p className="text-sm text-slate-400">{user.email}</p>
+                           <p className="text-xs font-mono text-slate-500 uppercase">{m.user.publicId}</p>
+                           <p className="text-sm text-slate-400">{m.user.email}</p>
                         </div>
                      </div>
 
                      <div className="flex items-center gap-3 w-full md:w-auto">
-                        {user.verificationDoc && (
-                          <Button variant="outline" size="sm" className="flex-1 md:flex-none gap-2" onClick={() => window.open(user.verificationDoc!, "_blank")}>
-                             <ImageIcon className="h-4 w-4" /> View Doc
+                        {m.user.verificationDoc && (
+                          <Button variant="outline" size="sm" className="flex-1 md:flex-none gap-2" onClick={() => window.open(m.user.verificationDoc!, "_blank")}>
+                             <ImageIcon className="h-4 w-4" /> View ID
                           </Button>
                         )}
-                        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white flex-1 md:flex-none gap-2" onClick={() => handleVerify(user.id, true)}>
-                           <UserCheck className="h-4 w-4" /> Approve
+                        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white flex-1 md:flex-none gap-2" onClick={() => handleVerify(m.user.id, true)}>
+                           <UserCheck className="h-4 w-4" /> Approve Member
                         </Button>
                      </div>
                   </div>
@@ -181,25 +185,25 @@ export default function MasterAdminPage() {
               </CardContent>
            </Card>
 
-           <h2 className="text-xl font-bold flex items-center gap-2">Recently Verified</h2>
+           <h2 className="text-xl font-bold flex items-center gap-2">Active Members</h2>
            <Card className="dark:bg-slate-900 border-slate-200 dark:border-slate-800">
               <CardContent className="p-0">
-                 {verifiedUsers.length === 0 ? (
-                   <div className="p-8 text-center text-slate-400 text-sm">None verified yet.</div>
+                 {verifiedMemberships.length === 0 ? (
+                   <div className="p-8 text-center text-slate-400 text-sm">No active members yet.</div>
                  ) : (
                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                      {verifiedUsers.slice(0, 5).map(u => (
-                        <div key={u.id} className="p-4 flex items-center justify-between group">
+                      {verifiedMemberships.slice(0, 5).map(m => (
+                        <div key={m.id} className="p-4 flex items-center justify-between group">
                            <div className="flex items-center gap-3">
                               <div className="h-8 w-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
                                  <UserCheck className="h-4 w-4 text-emerald-600" />
                               </div>
                               <div>
-                                 <p className="text-sm font-bold">{u.name}</p>
-                                 <p className="text-[10px] font-mono text-slate-400">{u.publicId}</p>
+                                 <p className="text-sm font-bold">{m.user.name}</p>
+                                 <p className="text-[10px] font-mono text-slate-400">{m.user.publicId}</p>
                               </div>
                            </div>
-                           <Button variant="ghost" size="icon" className="group-hover:opacity-100 opacity-0" onClick={() => handleVerify(u.id, false)}>
+                           <Button variant="ghost" size="icon" className="group-hover:opacity-100 opacity-0" onClick={() => handleVerify(m.user.id, false)}>
                               <UserX className="h-4 w-4 text-slate-400 hover:text-red-500" />
                            </Button>
                         </div>

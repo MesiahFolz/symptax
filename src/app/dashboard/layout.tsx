@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
-import { LogOut, LayoutDashboard, FileText, MessageSquare, Bot, Lightbulb, Users, Menu, X, User, Share2, ShieldCheck, Pill, Building } from "lucide-react";
+import { LogOut, LayoutDashboard, FileText, MessageSquare, Bot, Lightbulb, Users, Menu, X, User, Share2, ShieldCheck, Pill, Building, Building2 } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -71,10 +71,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 Medical Network
               </Link>
 
-              <Link href="/dashboard/branch-request" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-                <Building className="h-5 w-5 text-emerald-500" />
-                Create Branch
-              </Link>
+              {(role === "PATIENT" || role === "DOCTOR") && (
+                <Link href="/dashboard/branches" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                  <Building2 className="h-5 w-5 text-rose-500" />
+                  Explore Branches
+                </Link>
+              )}
 
               {role === "DOCTOR" && (
                 <Link href="/dashboard/patients" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">

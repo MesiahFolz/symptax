@@ -11,22 +11,38 @@ export async function GET() {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    const users = await prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        publicId: true,
-        isVerified: true,
-        verificationDoc: true,
-        createdAt: true,
-      }
+    const userId = (session.user as any).id;
+
+    const managedBranch = await prisma.branch.findUnique({
+      where: { masterAdminId: userId },
+      select: { id: true }
     });
 
-    return NextResponse.json({ users });
+    if (!managedBranch) {
+      return NextResponse.json({ memberships: [] }, { status: 200 });
+    }
+
+    const memberships = await prisma.branchMembership.findMany({
+      where: { branchId: managedBranch.id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            publicId: true,
+            isVerified: true,
+            verificationDoc: true,
+            createdAt: true,
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+
+    return NextResponse.json({ memberships });
   } catch (error) {
-    return NextResponse.json({ message: "Error fetching users" }, { status: 500 });
+    return NextResponse.json({ message: "Error fetching memberships" }, { status: 500 });
   }
 }

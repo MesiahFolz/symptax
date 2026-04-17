@@ -26,6 +26,10 @@ export default function RegisterPage() {
   const [profileImage, setProfileImage] = useState("");
   const [verificationDoc, setVerificationDoc] = useState("");
 
+  const [hospitalName, setHospitalName] = useState("");
+  const [branchName, setBranchName] = useState("");
+  const [branchAddress, setBranchAddress] = useState("");
+
   const getSupabase = () => {
     return createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -88,6 +92,12 @@ export default function RegisterPage() {
       setLoading(false);
       return;
     }
+    
+    if (role === "MASTER_ADMIN" && (!hospitalName || !branchName || !branchAddress)) {
+      setError("Master Admins must provide Hospital and Branch details.");
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/auth/register", {
@@ -99,7 +109,10 @@ export default function RegisterPage() {
           password,
           role,
           profileImage,
-          verificationDoc
+          verificationDoc,
+          hospitalName,
+          branchName,
+          branchAddress
         }),
       });
 
@@ -249,8 +262,42 @@ export default function RegisterPage() {
                 >
                   <option value="PATIENT">Patient</option>
                   <option value="DOCTOR">Doctor</option>
+                  <option value="MASTER_ADMIN">Master Admin (Register New Branch)</option>
                 </select>
               </div>
+
+              {role === "MASTER_ADMIN" && (
+                <div className="space-y-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2">Institution Details</h3>
+                  <div className="space-y-2">
+                    <Label className="dark:text-slate-300 text-xs">Hospital Name</Label>
+                    <Input
+                      placeholder="e.g. Genesis Medical"
+                      value={hospitalName}
+                      onChange={(e) => setHospitalName(e.target.value)}
+                      required={role === "MASTER_ADMIN"}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="dark:text-slate-300 text-xs">Branch Name</Label>
+                    <Input
+                      placeholder="e.g. North Wing"
+                      value={branchName}
+                      onChange={(e) => setBranchName(e.target.value)}
+                      required={role === "MASTER_ADMIN"}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="dark:text-slate-300 text-xs">Branch Address</Label>
+                    <Input
+                      placeholder="Street, City"
+                      value={branchAddress}
+                      onChange={(e) => setBranchAddress(e.target.value)}
+                      required={role === "MASTER_ADMIN"}
+                    />
+                  </div>
+                </div>
+              )}
               <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11" disabled={loading || uploading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 {loading ? "Registering Account..." : "Submit for Verification"}

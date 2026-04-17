@@ -17,19 +17,37 @@ export async function POST(
     }
 
     const { isVerified } = await req.json();
-    const userId = id;
+    const userIdToVerify = id;
+    const masterAdminId = (session.user as any).id;
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: { isVerified },
+    const managedBranch = await prisma.branch.findUnique({
+      where: { masterAdminId }
     });
 
-    // If verified, send a notification email
-    if (isVerified) {
-       await sendVerificationApprovedEmail(user.email, user.name);
+    if (!managedBranch) {
+      return NextResponse.json({ message: "No branch managed" }, { status: 400 });
     }
 
-    return NextResponse.json({ message: "User status updated", user });
+    const membership = await prisma.branchMembership.update({
+      where: {
+        userId_branchId: {
+          userId: userIdToVerify,
+          branchId: managedBranch.id
+        }
+      },
+      data: { status: isVerified ? "APPROVED" : "REJECTED" },
+      include: { user: true }
+    });
+
+    if (isVerified) {
+       await prisma.user.update({
+         where: { id: userIdToVerify },
+         data: { isVerified: true }
+       });
+       await sendVerificationApprovedEmail(membership.user.email, membership.user.name);
+    }
+
+    return NextResponse.json({ message: "Membership status updated", membership });
   } catch (error) {
     console.error("VERIFY_ERROR:", error);
     return NextResponse.json({ message: "Error updating status" }, { status: 500 });
