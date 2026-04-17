@@ -8,10 +8,33 @@ const LogoAnimation: React.FC = () => {
       <style>{`
         .logo-scene {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 28px;
+          gap: 20px;
           opacity: 0;
           animation: fadeUp 0.6s ease forwards 0.2s;
+        }
+
+        @media (min-width: 768px) {
+          .logo-scene {
+            flex-direction: row;
+            gap: 28px;
+          }
+        }
+
+        .icon-svg {
+          width: 160px;
+          height: auto;
+        }
+
+        .wordmark-svg {
+          width: 280px;
+          height: auto;
+        }
+
+        @media (min-width: 768px) {
+          .icon-svg { width: 200px; }
+          .wordmark-svg { width: 320px; }
         }
 
         @keyframes fadeUp {
@@ -118,7 +141,7 @@ const LogoAnimation: React.FC = () => {
 
       <div className="logo-scene">
         {/* Icon SVG */}
-        <svg width="200" height="200" viewBox="60 100 130 170" role="img" xmlns="http://www.w3.org/2000/svg">
+        <svg className="icon-svg" viewBox="60 100 130 170" role="img" xmlns="http://www.w3.org/2000/svg">
           <title>SympTax icon</title>
           <desc>Teal hexagon with a white medical cross and a heartbeat pulse line</desc>
 
@@ -149,7 +172,7 @@ const LogoAnimation: React.FC = () => {
         </svg>
 
         {/* Wordmark SVG */}
-        <svg width="320" height="100" viewBox="0 0 320 100" role="img" xmlns="http://www.w3.org/2000/svg">
+        <svg className="wordmark-svg" viewBox="0 0 320 100" role="img" xmlns="http://www.w3.org/2000/svg">
           <title>SympTax wordmark</title>
 
           <text className="brand-symp brand-name-fill"
