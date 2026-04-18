@@ -15,6 +15,7 @@ export default function SuperAdminPage() {
   const [branches, setBranches] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingUserId, setProcessingUserId] = useState<string | null>(null);
 
   const isSuperAdmin = (session?.user as any)?.role === "SUPER_ADMIN";
 
@@ -59,6 +60,30 @@ export default function SuperAdminPage() {
       }
     } catch {
       toast.error("An error occurred.");
+    }
+  };
+
+  const handleUserAction = async (id: string, action: "APPROVE" | "DELETE") => {
+    try {
+      setProcessingUserId(id);
+      const res = await fetch(`/api/superadmin/users/${id}/verify`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        toast.success(data.message);
+        fetchData();
+      } else {
+        toast.error(data.message || "Action failed.");
+      }
+    } catch {
+      toast.error("An error occurred.");
+    } finally {
+      setProcessingUserId(null);
     }
   };
 
@@ -246,7 +271,35 @@ export default function SuperAdminPage() {
                      ))}
                    </div>
                  )}
-               </Card>
+
+                 {!user.isVerified && user.role !== "SUPER_ADMIN" && (
+                    <div className="px-5 pb-5 pt-1 flex gap-3 border-t border-slate-50 dark:border-slate-800/50 mt-3">
+                       <Button 
+                         size="sm"
+                         disabled={processingUserId === user.id}
+                         onClick={() => handleUserAction(user.id, "APPROVE")}
+                         className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                       >
+                         {processingUserId === user.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                         Approve Registration
+                       </Button>
+                       <Button 
+                         size="sm"
+                         variant="outline"
+                         disabled={processingUserId === user.id}
+                         onClick={() => {
+                           if(confirm("Are you sure you want to remove this pending account?")) {
+                             handleUserAction(user.id, "DELETE");
+                           }
+                         }}
+                         className="flex-1 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                       >
+                         {processingUserId === user.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
+                         Remove Account
+                       </Button>
+                    </div>
+                  )}
+                </Card>
              ))}
            </div>
         </TabsContent>
