@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ShieldCheck, Building, User, CheckCircle, XCircle, Clock, Loader2, Users, Network } from "lucide-react";
+import { ShieldCheck, Building, User, CheckCircle, XCircle, Clock, Loader2, Users, Network, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -271,6 +271,20 @@ export default function SuperAdminPage() {
                      ))}
                    </div>
                  )}
+
+                 {user.verificationDoc && (
+                    <div className="px-5 pb-3">
+                       <Button 
+                         variant="ghost" 
+                         size="sm" 
+                         className="h-8 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 flex items-center gap-2"
+                         onClick={() => window.open(user.verificationDoc, '_blank')}
+                       >
+                         <Eye className="h-4 w-4" />
+                         <span className="text-xs font-bold uppercase tracking-wider">Registration Document</span>
+                       </Button>
+                    </div>
+                  )}
 
                  {!user.isVerified && user.role !== "SUPER_ADMIN" && (
                     <div className="px-5 pb-5 pt-1 flex gap-3 border-t border-slate-50 dark:border-slate-800/50 mt-3">

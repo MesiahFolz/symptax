@@ -28,6 +28,7 @@ export async function GET() {
                 role: true,
                 publicId: true,
                 isVerified: true,
+                verificationDoc: true,
                 createdAt: true,
                 profile: { select: { profileImage: true, bloodType: true, gender: true } }
               }
@@ -48,6 +49,7 @@ export async function GET() {
         role: true,
         publicId: true,
         isVerified: true,
+        verificationDoc: true,
         createdAt: true,
         hospital: { select: { name: true } },
         branch: { select: { name: true } },
