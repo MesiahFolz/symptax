@@ -164,11 +164,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="hidden sm:flex nav-prompt mr-2">
-               <span className="bg-white/80 dark:bg-slate-800 px-1 rounded border border-border shadow-sm italic font-mono text-[9px]">ESC</span>
-               <span>Close Panel</span>
+            <div id="theme-toggle-wrapper">
+              <ThemeToggle />
             </div>
-            <ThemeToggle />
             <NotificationsBell />
           </div>
         </header>

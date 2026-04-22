@@ -23,7 +23,13 @@ export function NotificationsBell() {
 
   return (
     <div className="relative">
-      <Button variant="ghost" size="icon" onClick={() => setOpen(!open)} className="relative text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+      <Button 
+        id="notifications-bell-btn"
+        variant="ghost" 
+        size="icon" 
+        onClick={() => setOpen(!open)} 
+        className="relative text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+      >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
           <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-900 shadow-sm" />

@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FileText, MessageSquare, Bot, ArrowRight, Lightbulb, Users, AlertTriangle, Loader2 } from "lucide-react";
+import { FileText, MessageSquare, Bot, ArrowRight, Lightbulb, Users, AlertTriangle, Loader2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -36,7 +36,6 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-border-raised">
         <div>
           <div className="flex items-center gap-3 mb-2">
-             <div className="nav-prompt animate-none bg-primary/10 border-primary/20 text-primary">SESSION ACTIVE</div>
              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">/ Overview</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground">
@@ -49,10 +48,6 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex gap-2">
-           <div className="nav-prompt md:flex hidden">
-             <span className="bg-white/50 dark:bg-slate-800 px-1 rounded border border-border italic font-mono text-[9px]">P</span>
-             <span>Account Settings</span>
-           </div>
         </div>
       </div>
 
@@ -66,7 +61,6 @@ export default function DashboardPage() {
             <div className="flex-1">
               <div className="flex items-center justify-between">
                  <h3 className="font-black text-red-800 dark:text-red-300 text-xl uppercase tracking-tight">Clinical Action Required</h3>
-                 <div className="nav-prompt bg-red-100 border-red-200 text-red-700 animate-none">Priority 1</div>
               </div>
               <div className="mt-4 space-y-4">
                 {alerts.map(a => (
@@ -114,14 +108,13 @@ export default function DashboardPage() {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {!isDoctor && (
               <>
-                <Card className="raised-card p-0 overflow-hidden border-none shadow-none group">
+                <Card className="raised-card p-0 overflow-hidden border-none shadow-none group" id="card-history">
                   <div className="h-1.5 bg-primary w-full" />
                   <CardHeader className="p-8">
                     <div className="flex items-center justify-between mb-4">
                        <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20 shadow-inner group-hover:scale-110 transition-transform">
                           <FileText className="h-7 w-7 text-primary" />
                        </div>
-                       <Button variant="ghost" size="icon" className="nav-prompt scale-100 flex h-6 w-6">H</Button>
                     </div>
                     <CardTitle className="text-2xl font-black tracking-tight">Medical History</CardTitle>
                     <CardDescription className="text-base font-medium">Unified clinical timeline</CardDescription>
@@ -134,14 +127,13 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="raised-card p-0 overflow-hidden border-none shadow-none group">
+                <Card className="raised-card p-0 overflow-hidden border-none shadow-none group" id="card-insights">
                   <div className="h-1.5 bg-yellow-500 w-full" />
                   <CardHeader className="p-8">
                     <div className="flex items-center justify-between mb-4">
                        <div className="bg-yellow-500/10 p-4 rounded-2xl border border-yellow-500/20 shadow-inner group-hover:scale-110 transition-transform">
                           <Lightbulb className="h-7 w-7 text-yellow-600 dark:text-yellow-400" />
                        </div>
-                       <Button variant="ghost" size="icon" className="nav-prompt scale-100 flex h-6 w-6">I</Button>
                     </div>
                     <CardTitle className="text-2xl font-black tracking-tight">Clinical Insights</CardTitle>
                     <CardDescription className="text-base font-medium">AI wellbeing analysis</CardDescription>
@@ -154,14 +146,13 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="raised-card p-0 overflow-hidden border-none shadow-none group">
+                <Card className="raised-card p-0 overflow-hidden border-none shadow-none group" id="card-ai">
                   <div className="h-1.5 bg-purple-600 w-full" />
                   <CardHeader className="p-8">
                     <div className="flex items-center justify-between mb-4">
                        <div className="bg-purple-600/10 p-4 rounded-2xl border border-purple-600/20 shadow-inner group-hover:scale-110 transition-transform">
                           <Bot className="h-7 w-7 text-purple-600 dark:text-purple-400" />
                        </div>
-                       <Button variant="ghost" size="icon" className="nav-prompt scale-100 flex h-6 w-6">C</Button>
                     </div>
                     <CardTitle className="text-2xl font-black tracking-tight">AI Health Bot</CardTitle>
                     <CardDescription className="text-base font-medium">Symmetry Medical Core</CardDescription>
@@ -177,7 +168,7 @@ export default function DashboardPage() {
             )}
 
             {isDoctor && (
-              <Card className="raised-card p-0 overflow-hidden border-none shadow-none group">
+              <Card className="raised-card p-0 overflow-hidden border-none shadow-none group" id="card-patients">
                 <div className="h-1.5 bg-primary w-full" />
                 <CardHeader className="p-8">
                   <div className="flex items-center justify-between mb-4">
@@ -197,14 +188,34 @@ export default function DashboardPage() {
               </Card>
             )}
 
-            <Card className="raised-card p-0 overflow-hidden border-none shadow-none group">
+            {(session.user as any)?.role === "MASTER_ADMIN" && (
+              <Card className="raised-card p-0 overflow-hidden border-none shadow-none group" id="card-admin">
+                <div className="h-1.5 bg-indigo-600 w-full" />
+                <CardHeader className="p-8">
+                  <div className="flex items-center justify-between mb-4">
+                     <div className="bg-indigo-600/10 p-4 rounded-2xl border border-indigo-600/20 shadow-inner group-hover:scale-110 transition-transform">
+                        <ShieldCheck className="h-7 w-7 text-indigo-600" />
+                     </div>
+                  </div>
+                  <CardTitle className="text-2xl font-black tracking-tight">Admin Console</CardTitle>
+                  <CardDescription className="text-base font-medium">Verify users & branches</CardDescription>
+                </CardHeader>
+                <CardContent className="px-8 pb-8 flex justify-between items-center bg-surface-subtle/50 border-t border-border">
+                  <span className="text-xs font-black text-muted-foreground">GOVERNANCE ACTIVE</span>
+                  <Link href="/dashboard/master">
+                    <Button variant="ghost" size="sm" className="font-black text-indigo-600 hover:bg-indigo-600/10 gap-2">MANAGE <ArrowRight className="h-4 w-4" /></Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card className="raised-card p-0 overflow-hidden border-none shadow-none group" id="card-messages">
               <div className="h-1.5 bg-emerald-600 w-full" />
               <CardHeader className="p-8">
                 <div className="flex items-center justify-between mb-4">
                    <div className="bg-emerald-600/10 p-4 rounded-2xl border border-emerald-600/20 shadow-inner group-hover:scale-110 transition-transform">
                       <MessageSquare className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
                    </div>
-                   <Button variant="ghost" size="icon" className="nav-prompt scale-100 flex h-6 w-6">M</Button>
                 </div>
                 <CardTitle className="text-2xl font-black tracking-tight">Messages</CardTitle>
                 <CardDescription className="text-base font-medium">Clinical communication</CardDescription>
@@ -222,9 +233,8 @@ export default function DashboardPage() {
              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                 <div>
                   <h4 className="font-black text-lg text-foreground">Need help navigating?</h4>
-                  <p className="text-muted-foreground text-sm font-medium">Use the keyboard shortcuts (hints in circles) or the sidebar to explore.</p>
+                  <p className="text-muted-foreground text-sm font-medium">Explore the sidebar to discover all clinical modules.</p>
                 </div>
-                <Button variant="outline" className="raised-button border-border-raised bg-surface-flat font-black text-xs px-6 py-4 rounded-xl">PRESS ESC FOR MAIN MENU</Button>
              </div>
           </div>
         </>

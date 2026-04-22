@@ -1,23 +1,46 @@
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HeartPulse, Stethoscope, ShieldCheck, WifiOff } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import LogoAnimation from "@/components/LogoAnimation";
+import { TutorialGate } from "@/components/tutorial/TutorialGate";
+import { useTutorial } from "@/components/tutorial/TutorialContext";
 
 export default function Home() {
+  const [showTutorialGate, setShowTutorialGate] = useState(false);
+  const { isActive, exitTutorial } = useTutorial();
+
   return (
     <div className="flex flex-col min-h-screen bg-background transition-colors duration-300">
+      <TutorialGate isOpen={showTutorialGate} onClose={() => setShowTutorialGate(false)} />
+      
       <header className="px-8 py-5 flex items-center justify-between border-b border-border bg-surface-flat/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-6">
-          <img src="/symptax_logo.svg" alt="SympTax" className="h-14 w-auto" />
-          <div className="hidden lg:flex nav-prompt">
-            <span className="bg-white/50 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-border">ALT + S</span>
-            <span>Search directory</span>
-          </div>
+          <img src="/symptax_logo.svg" alt="SympTax" className="h-14 w-auto" id="main-logo" />
         </div>
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <nav className="hidden md:flex items-center gap-2">
+            {!isActive ? (
+              <Button 
+                variant="outline" 
+                onClick={() => setShowTutorialGate(true)}
+                className="font-black text-xs tracking-widest border-primary/20 text-primary hover:bg-primary/5 rounded-xl px-4"
+              >
+                TUTORIAL MODE
+              </Button>
+            ) : (
+              <Button 
+                variant="destructive" 
+                onClick={exitTutorial}
+                className="font-black text-xs tracking-widest rounded-xl px-4"
+              >
+                EXIT TUTORIAL
+              </Button>
+            )}
             <Link href="/login">
               <Button variant="ghost" className="font-bold text-sm tracking-wide">LOG IN</Button>
             </Link>
@@ -56,14 +79,12 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <Link href="/register" className="group">
-              <div className="nav-prompt mb-2 mx-auto justify-center opacity-0 group-hover:opacity-100 transition-opacity">PRESS ENTER</div>
+            <Link href="/register" className="group" id="hero-register-btn">
               <Button className="raised-button w-full sm:w-80 h-16 text-xl bg-primary text-primary-foreground font-black rounded-2xl">
                 Create Free Account
               </Button>
             </Link>
-            <Link href="/login" className="group">
-              <div className="nav-prompt mb-2 mx-auto justify-center opacity-0 group-hover:opacity-100 transition-opacity">PRESS L</div>
+            <Link href="/login" className="group" id="hero-login-btn">
               <Button variant="outline" className="w-full sm:w-64 h-16 text-xl border-2 border-border-raised bg-surface-flat font-black rounded-2xl hover:bg-surface-subtle shadow-[var(--shadow-raised)]">
                 Sign In
               </Button>
@@ -134,7 +155,6 @@ export default function Home() {
                     Get Started Now
                   </Button>
                 </Link>
-                <div className="nav-prompt border-white/20 text-white/60 animate-none">or Scroll to Learn More</div>
               </div>
            </div>
         </section>

@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,14 +10,29 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { HeartPulse, Eye, EyeOff } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useTutorial } from "@/components/tutorial/TutorialContext";
+import { TUTORIAL_STEPS } from "@/lib/tutorialConfig";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { isActive, role: tutorialRole, step } = useTutorial();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Tutorial Auto-fill Logic
+  useEffect(() => {
+    if (isActive && tutorialRole) {
+      const currentStepData = TUTORIAL_STEPS[tutorialRole][step];
+      if (currentStepData?.autoFill) {
+        const data = currentStepData.autoFill;
+        if (data.email) setEmail(data.email);
+        if (data.password) setPassword(data.password);
+      }
+    }
+  }, [isActive, tutorialRole, step]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,7 +119,7 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={loading}>
+              <Button type="submit" id="login-submit-btn" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={loading}>
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>

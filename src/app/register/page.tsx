@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,9 +10,12 @@ import Link from "next/link";
 import { HeartPulse, Eye, EyeOff, Camera, Upload, Loader2, CheckCircle2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@supabase/supabase-js";
+import { useTutorial } from "@/components/tutorial/TutorialContext";
+import { TUTORIAL_STEPS } from "@/lib/tutorialConfig";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { isActive, role: tutorialRole, step } = useTutorial();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,6 +32,27 @@ export default function RegisterPage() {
   const [hospitalName, setHospitalName] = useState("");
   const [branchName, setBranchName] = useState("");
   const [branchAddress, setBranchAddress] = useState("");
+
+  // Tutorial Auto-fill Logic
+  useEffect(() => {
+    if (isActive && tutorialRole) {
+      const currentStepData = TUTORIAL_STEPS[tutorialRole][step];
+      if (currentStepData?.autoFill) {
+        const data = currentStepData.autoFill;
+        if (data.name) setName(data.name);
+        if (data.email) setEmail(data.email);
+        if (data.password) setPassword(data.password);
+        if (data.role) setRole(data.role);
+        if (data.hospitalName) setHospitalName(data.hospitalName);
+        if (data.branchName) setBranchName(data.branchName);
+        if (data.branchAddress) setBranchAddress(data.branchAddress);
+        
+        // Mock files for tutorial
+        setProfileImage("https://ui-avatars.com/api/?name=Tutorial+User&background=0D8ABC&color=fff");
+        setVerificationDoc("https://placehold.co/600x400/000000/FFFFFF/png?text=MOCK+ID+CARD");
+      }
+    }
+  }, [isActive, tutorialRole, step]);
 
   const getSupabase = () => {
     return createClient(

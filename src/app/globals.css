@@ -60,7 +60,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-primary/40 transition-colors duration-200;
+    @apply border-border transition-colors duration-200;
   }
   body {
     @apply bg-background text-foreground antialiased;
@@ -76,13 +76,9 @@
     @apply relative overflow-hidden shadow-[var(--shadow-raised)] active:shadow-inner active:translate-y-0.5 transition-all;
   }
 
-  .nav-prompt {
-    @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-subtle border border-border text-[10px] font-bold uppercase tracking-widest text-muted-foreground animate-pulse;
+  .raised-button {
+    @apply relative overflow-hidden shadow-[var(--shadow-raised)] active:shadow-inner active:translate-y-0.5 transition-all;
   }
-
-  /* 3D Visual Aids */
-  .depth-1 { @apply shadow-[var(--shadow-raised)] border border-border-raised; }
-  .depth-2 { @apply shadow-[var(--shadow-overlay)] border border-border-raised/50; }
 }
 
 @theme {
