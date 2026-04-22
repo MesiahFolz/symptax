@@ -29,6 +29,7 @@ model User {
   isVerified      Boolean        @default(false)
   publicId        String         @unique // For ST-XXXX format
   verificationDoc String?        // URL to ID/license image
+  requestedRole   String?        @default("PATIENT")
   
   // Scoping (Multi-Tenancy)
   hospitalId      String?

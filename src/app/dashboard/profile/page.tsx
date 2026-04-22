@@ -290,7 +290,7 @@ export default function ProfilePage() {
                <span className={`text-xs font-black uppercase tracking-widest ${
                   isVerified ? "text-emerald-700" : "text-amber-700"
                }`}>
-                  {isVerified ? `Verified ${currentRole}` : "Not Verified"}
+                  {isVerified ? `Verified ${currentRole.replace('_', ' ')}` : "Not Verified"}
                </span>
             </div>
          </div>

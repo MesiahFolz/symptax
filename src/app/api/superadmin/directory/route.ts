@@ -50,6 +50,7 @@ export async function GET() {
         publicId: true,
         isVerified: true,
         verificationDoc: true,
+        requestedRole: true,
         createdAt: true,
         hospital: { select: { name: true } },
         branch: { select: { name: true } },

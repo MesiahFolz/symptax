@@ -173,7 +173,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="overflow-hidden">
               <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{session?.user?.name}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
-                {isVerified ? role : "Unverified"}
+                {isVerified ? `Verified ${role.replace('_', ' ')}` : "Unverified"}
               </p>
             </div>
           </div>
@@ -206,7 +206,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {isVerified && (
                 <div className="hidden md:flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest bg-surface-subtle px-3 py-1.5 rounded-full border border-border shadow-inner">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                  <span className="text-emerald-600">Verified</span>
+                  <span className="text-emerald-600">Verified {role.replace('_', ' ')}</span>
                 </div>
               )}
             </div>

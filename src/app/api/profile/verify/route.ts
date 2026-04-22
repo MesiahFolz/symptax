@@ -27,11 +27,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Save the verification document to the user record
+    // Save the verification document and requested role to the user record
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
         verificationDoc,
+        requestedRole,
       },
     });
 

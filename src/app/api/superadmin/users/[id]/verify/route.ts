@@ -25,9 +25,12 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     if (action === "APPROVE") {
       await prisma.user.update({
         where: { id },
-        data: { isVerified: true },
+        data: { 
+          isVerified: true,
+          role: user.requestedRole || "PATIENT" // Promote to the requested role upon verification
+        },
       });
-      return NextResponse.json({ message: "User verified successfully" }, { status: 200 });
+      return NextResponse.json({ message: `User verified and promoted to ${user.requestedRole || "PATIENT"}` }, { status: 200 });
     } else if (action === "DELETE") {
        // Only allow deleting non-Super Admin users for safety
        if (user.role === "SUPER_ADMIN") {

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShieldCheck, UserCheck, UserX, Image as ImageIcon, Loader2, Search, Users, Clock, User, Droplets, Ruler, Weight, Calendar, FileText } from "lucide-react";
+import { ShieldCheck, UserCheck, UserX, Image as ImageIcon, Loader2, Search, Users, Clock, User, Droplets, Ruler, Weight, Calendar, FileText, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
@@ -48,6 +48,12 @@ export default function MasterAdminPage() {
   const [filter, setFilter] = useState("");
   const [selectedMember, setSelectedMember] = useState<MemberUser | null>(null);
 
+  // Branch creation state
+  const [hospitalName, setHospitalName] = useState("");
+  const [branchName, setBranchName] = useState("");
+  const [branchAddress, setBranchAddress] = useState("");
+  const [creatingBranch, setCreatingBranch] = useState(false);
+
   const fetchMemberships = async () => {
     try {
       const res = await fetch("/api/master/users");
@@ -78,6 +84,37 @@ export default function MasterAdminPage() {
       }
     } catch {
       toast.error("Action failed");
+    }
+  };
+
+  const handleCreateBranch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!hospitalName || !branchName) {
+      toast.error("Please fill in hospital and branch names.");
+      return;
+    }
+
+    setCreatingBranch(true);
+    try {
+      const res = await fetch("/api/master/branch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hospitalName, branchName, branchAddress }),
+      });
+
+      if (res.ok) {
+        toast.success("Hospital Branch Created!", {
+          description: "You can now manage your members and clinical records.",
+        });
+        fetchMemberships();
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Failed to create branch");
+      }
+    } catch {
+      toast.error("Connection error");
+    } finally {
+      setCreatingBranch(false);
     }
   };
 
@@ -124,7 +161,62 @@ export default function MasterAdminPage() {
         </div>
       </div>
 
-      <div className="flex gap-6">
+      {!branch ? (
+        <Card className="border-2 border-dashed border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/30 dark:bg-indigo-950/10 p-8 md:p-12">
+          <div className="max-w-md mx-auto text-center space-y-6">
+            <div className="bg-indigo-100 dark:bg-indigo-900/30 h-20 w-20 rounded-3xl flex items-center justify-center mx-auto border-2 border-indigo-200 dark:border-indigo-800 shadow-inner">
+              <Building2 className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white">Initialize Your Branch</h2>
+              <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
+                As a Master Admin, you can create one hospital branch to manage your clinical network.
+              </p>
+            </div>
+
+            <form onSubmit={handleCreateBranch} className="space-y-4 text-left">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Hospital Name</label>
+                <Input 
+                  placeholder="e.g. City General Hospital" 
+                  value={hospitalName}
+                  onChange={(e) => setHospitalName(e.target.value)}
+                  className="h-12 rounded-xl"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Branch Name</label>
+                <Input 
+                  placeholder="e.g. Downtown Clinic" 
+                  value={branchName}
+                  onChange={(e) => setBranchName(e.target.value)}
+                  className="h-12 rounded-xl"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Physical Address</label>
+                <Input 
+                  placeholder="123 Medical Dr..." 
+                  value={branchAddress}
+                  onChange={(e) => setBranchAddress(e.target.value)}
+                  className="h-12 rounded-xl"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                disabled={creatingBranch}
+                className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-lg shadow-lg shadow-indigo-200 dark:shadow-none transition-all active:scale-[0.98]"
+              >
+                {creatingBranch ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <ShieldCheck className="h-5 w-5 mr-2" />}
+                {creatingBranch ? "Creating..." : "Establish Branch"}
+              </Button>
+            </form>
+          </div>
+        </Card>
+      ) : (
+        <div className="flex gap-6">
         {/* Left: Member List Tabs */}
         <div className={`flex-1 min-w-0 ${selectedMember ? 'hidden lg:block' : ''}`}>
           <Tabs defaultValue="pending">
@@ -312,6 +404,7 @@ export default function MasterAdminPage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

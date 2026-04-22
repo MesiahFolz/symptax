@@ -225,6 +225,11 @@ export default function SuperAdminPage() {
                          <Badge variant="outline" className={`text-[9px] tracking-widest shrink-0 ${user.role === 'SUPER_ADMIN' ? 'border-purple-300 text-purple-600 bg-purple-50' : user.role === 'MASTER_ADMIN' ? 'border-blue-300 text-blue-600 bg-blue-50' : user.role === 'DOCTOR' ? 'border-emerald-300 text-emerald-600 bg-emerald-50' : 'border-slate-200 text-slate-600'}`}>
                            {user.role}
                          </Badge>
+                         {!user.isVerified && user.requestedRole && user.requestedRole !== user.role && (
+                           <Badge variant="outline" className="text-[9px] border-indigo-200 text-indigo-600 bg-indigo-50 shrink-0">
+                             REQUESTING: {user.requestedRole}
+                           </Badge>
+                         )}
                          {user.isVerified ? (
                            <Badge className="text-[9px] bg-emerald-500 shrink-0">VERIFIED</Badge>
                          ) : (
