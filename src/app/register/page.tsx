@@ -11,11 +11,11 @@ import { HeartPulse, Eye, EyeOff, Camera, Upload, Loader2, CheckCircle2 } from "
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@supabase/supabase-js";
 import { useTutorial } from "@/components/tutorial/TutorialContext";
-import { TUTORIAL_STEPS } from "@/lib/tutorialConfig";
+import { ONBOARDING_STEPS } from "@/lib/tutorialConfig";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { isActive, role: tutorialRole, step, reportTaskComplete } = useTutorial();
+  const { isActive, step, reportTaskComplete, phase } = useTutorial();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,10 +35,9 @@ export default function RegisterPage() {
 
   // Tutorial Task Detection Logic
   useEffect(() => {
-    if (!isActive || !tutorialRole) return;
+    if (!isActive || phase !== "ONBOARDING") return;
 
-    const currentSteps = TUTORIAL_STEPS[tutorialRole] || [];
-    const currentStep = currentSteps[step];
+    const currentStep = ONBOARDING_STEPS[step];
     if (!currentStep?.requirement) return;
 
     const { type, targetId } = currentStep.requirement;
@@ -48,7 +47,7 @@ export default function RegisterPage() {
       if (targetId === "email" && email.includes("@")) reportTaskComplete();
       if (targetId === "password" && password.length > 5) reportTaskComplete();
     }
-  }, [isActive, tutorialRole, step, name, email, password]);
+  }, [isActive, phase, step, name, email, password]);
 
   const getSupabase = () => {
     return createClient(

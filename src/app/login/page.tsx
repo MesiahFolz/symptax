@@ -11,11 +11,11 @@ import Link from "next/link";
 import { HeartPulse, Eye, EyeOff } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useTutorial } from "@/components/tutorial/TutorialContext";
-import { TUTORIAL_STEPS } from "@/lib/tutorialConfig";
+import { ONBOARDING_STEPS } from "@/lib/tutorialConfig";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isActive, role: tutorialRole, step, reportTaskComplete } = useTutorial();
+  const { isActive, step, reportTaskComplete, exitTutorial, phase } = useTutorial();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -24,10 +24,9 @@ export default function LoginPage() {
 
   // Tutorial Task Detection Logic
   useEffect(() => {
-    if (!isActive || !tutorialRole) return;
+    if (!isActive || phase !== "ONBOARDING") return;
 
-    const currentSteps = TUTORIAL_STEPS[tutorialRole] || [];
-    const currentStep = currentSteps[step];
+    const currentStep = ONBOARDING_STEPS[step];
     if (!currentStep?.requirement) return;
 
     const { type, targetId } = currentStep.requirement;
@@ -36,7 +35,7 @@ export default function LoginPage() {
       if (targetId === "email" && email.includes("@")) reportTaskComplete();
       if (targetId === "password" && password.length > 5) reportTaskComplete();
     }
-  }, [isActive, tutorialRole, step, email, password]);
+  }, [isActive, phase, step, email, password]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +57,10 @@ export default function LoginPage() {
         setError("Invalid email or password");
       }
     } else {
+      // If onboarding tutorial is active, stop it now
+      if (isActive && phase === "ONBOARDING") {
+        exitTutorial();
+      }
       router.push("/dashboard");
     }
   };

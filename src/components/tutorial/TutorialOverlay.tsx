@@ -3,19 +3,22 @@
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTutorial } from "./TutorialContext";
-import { TUTORIAL_STEPS } from "@/lib/tutorialConfig";
+import { ONBOARDING_STEPS, DASHBOARD_STEPS, TutorialStep } from "@/lib/tutorialConfig";
 import { Button } from "@/components/ui/button";
 import { X, ChevronRight, Info, CheckCircle2 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 
 export const TutorialOverlay = () => {
-  const { isActive, role, step, nextStep, exitTutorial, canAdvance } = useTutorial();
+  const { isActive, role, step, phase, nextStep, exitTutorial, canAdvance } = useTutorial();
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const requestRef = useRef<number>(null);
 
-  const currentSteps = role ? TUTORIAL_STEPS[role] : [];
+  const currentSteps: TutorialStep[] = phase === "ONBOARDING" 
+    ? ONBOARDING_STEPS 
+    : (role ? DASHBOARD_STEPS[role] : []);
+    
   const currentStepData = currentSteps[step];
 
   // Update target bounding box continuously for smooth tracking
@@ -93,7 +96,9 @@ export const TutorialOverlay = () => {
                   <div className="p-1.5 bg-primary/20 rounded-full">
                     {canAdvance ? <CheckCircle2 className="h-4 w-4" /> : <Info className="h-4 w-4" />}
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest">{canAdvance ? 'Task Ready' : 'Task Pending'}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    {phase === "ONBOARDING" ? "Onboarding" : "Account Tour"}
+                  </span>
                 </div>
                 <button 
                   onClick={exitTutorial}

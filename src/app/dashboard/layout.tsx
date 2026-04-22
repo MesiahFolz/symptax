@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
-import { LogOut, LayoutDashboard, FileText, MessageSquare, Bot, Lightbulb, Users, Menu, X, User, Share2, ShieldCheck, Pill, Building, Building2 } from "lucide-react";
+import { LogOut, LayoutDashboard, FileText, MessageSquare, Bot, Lightbulb, Users, Menu, X, User, Share2, ShieldCheck, Pill, Building, Building2, HelpCircle } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useTutorial } from "@/components/tutorial/TutorialContext";
+import { motion } from "framer-motion";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { startDashboardTour } = useTutorial();
   const role = (session?.user as any)?.role || "PATIENT";
   const isDoctor = role === "DOCTOR";
 
@@ -40,7 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          <Link href="/dashboard" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold active:scale-[0.98]">
+          <Link href="/dashboard" id="nav-dashboard" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold active:scale-[0.98]">
             <LayoutDashboard className="h-5 w-5 text-primary" />
             Dashboard
           </Link>
@@ -50,45 +53,45 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <>
               {role === "PATIENT" && (
                 <>
-                  <Link href="/dashboard/medical-history" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+                  <Link href="/dashboard/medical-history" id="nav-medical-history" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
                     <Pill className="h-5 w-5 text-slate-400 group-hover:text-primary" />
                     Medical History
                   </Link>
-                  <Link href="/dashboard/timeline" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+                  <Link href="/dashboard/timeline" id="nav-timeline" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
                     <FileText className="h-5 w-5 text-slate-400" />
                     Symptom Timeline
                   </Link>
-                  <Link href="/dashboard/insights" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+                  <Link href="/dashboard/insights" id="nav-insights" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
                     <Lightbulb className="h-5 w-5 text-yellow-500" />
                     Insights
                   </Link>
-                  <Link href="/dashboard/ai-chat" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+                  <Link href="/dashboard/ai-chat" id="nav-ai-chat" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
                     <Bot className="h-5 w-5 text-purple-500" />
                     Health Bot
                   </Link>
                 </>
               )}
 
-              <Link href="/dashboard/network" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+              <Link href="/dashboard/network" id="nav-network" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
                 <Share2 className="h-5 w-5 text-blue-500" />
                 Medical Network
               </Link>
 
               {(role === "PATIENT" || role === "DOCTOR") && (
-                <Link href="/dashboard/branches" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+                <Link href="/dashboard/branches" id="nav-branches" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
                   <Building2 className="h-5 w-5 text-rose-500" />
                   Explore Branches
                 </Link>
               )}
 
               {role === "DOCTOR" && (
-                <Link href="/dashboard/patients" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+                <Link href="/dashboard/patients" id="nav-patients" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
                   <Users className="h-5 w-5 text-slate-400" />
                   Patients
                 </Link>
               )}
 
-              <Link href="/dashboard/messages" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+              <Link href="/dashboard/messages" id="nav-messages" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
                 <MessageSquare className="h-5 w-5 text-slate-400" />
                 Messages
               </Link>
@@ -96,20 +99,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
 
           <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground px-4 py-2 mt-4">Settings</div>
-          <Link href="/dashboard/profile" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+          <Link href="/dashboard/profile" id="nav-profile" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
             <User className="h-5 w-5 text-slate-400" />
             My Profile
           </Link>
 
           {role === "MASTER_ADMIN" && (
-            <Link href="/dashboard/master" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 border border-indigo-100 hover:bg-indigo-100 transition-all font-bold mt-4 shadow-sm">
+            <Link href="/dashboard/master" id="nav-master" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 border border-indigo-100 hover:bg-indigo-100 transition-all font-bold mt-4 shadow-sm">
               <ShieldCheck className="h-5 w-5" />
               Master Admin
             </Link>
           )}
 
           {role === "SUPER_ADMIN" && (
-            <Link href="/dashboard/superadmin" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/30 text-primary dark:text-blue-400 hover:bg-blue-100 transition-all font-bold mt-4 shadow-[var(--shadow-raised)] border border-blue-100 dark:border-blue-900/50">
+            <Link href="/dashboard/superadmin" id="nav-superadmin" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/30 text-primary dark:text-blue-400 hover:bg-blue-100 transition-all font-bold mt-4 shadow-[var(--shadow-raised)] border border-blue-100 dark:border-blue-900/50">
               <ShieldCheck className="h-5 w-5" />
               Super Admin
             </Link>
@@ -158,7 +161,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 md:gap-4">
+            {/* New Tutorial Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => startDashboardTour(role)}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-2xl border border-primary/20 transition-all group overflow-hidden relative shadow-sm"
+            >
+              <motion.div
+                animate={{ rotate: [0, 0, 15, -15, 0] }}
+                transition={{ repeat: Infinity, duration: 3, delay: 2 }}
+              >
+                <HelpCircle className="h-4 w-4" />
+              </motion.div>
+              <span className="text-xs font-black uppercase tracking-widest">Tutorial</span>
+            </motion.button>
+
             <div id="theme-toggle-wrapper">
               <ThemeToggle />
             </div>

@@ -10,110 +10,109 @@ export interface TutorialStep {
   };
 }
 
-export const TUTORIAL_STEPS: Record<string, TutorialStep[]> = {
+export type TutorialPhase = "ONBOARDING" | "DASHBOARD";
+
+export const ONBOARDING_STEPS: TutorialStep[] = [
+  {
+    title: "Welcome to SympTax",
+    description: "To start your journey, please click 'Create Free Account' below.",
+    path: "/",
+    targetId: "hero-register-btn",
+    requirement: { type: "click", targetId: "hero-register-btn" }
+  },
+  {
+    title: "Registration",
+    description: "Please type your Legal Full Name in the box highlighted.",
+    path: "/register",
+    targetId: "name",
+    requirement: { type: "input", targetId: "name" }
+  },
+  {
+    title: "Your Email",
+    description: "Enter your email address to continue.",
+    path: "/register",
+    targetId: "email",
+    requirement: { type: "input", targetId: "email" }
+  },
+  {
+    title: "Submit Registration",
+    description: "Click 'Submit for Verification' to finish your registration.",
+    path: "/register",
+    targetId: "register-submit-btn",
+    requirement: { type: "click", targetId: "register-submit-btn" }
+  },
+  {
+    title: "Let's Sign In",
+    description: "Your account is ready. Please enter your email to log in.",
+    path: "/login",
+    targetId: "email",
+    requirement: { type: "input", targetId: "email" }
+  },
+  {
+    title: "Access Dashboard",
+    description: "Click 'Sign in' to enter your health portal. The onboarding tour will finish here.",
+    path: "/login",
+    targetId: "login-submit-btn",
+    requirement: { type: "click", targetId: "login-submit-btn" }
+  },
+];
+
+export const DASHBOARD_STEPS: Record<string, TutorialStep[]> = {
   PATIENT: [
     {
-      title: "Welcome to SympTax",
-      description: "We help you keep your health records safe. To start, please click 'Create Free Account' below.",
-      path: "/",
-      targetId: "hero-register-btn",
-      requirement: { type: "click", targetId: "hero-register-btn" }
-    },
-    {
-      title: "Tell us who you are",
-      description: "Please type your Legal Full Name in the box highlighted.",
-      path: "/register",
-      targetId: "name",
-      requirement: { type: "input", targetId: "name" }
-    },
-    {
-      title: "Your Email",
-      description: "Now, please enter your email address. Remember, Patients usually use @gmail.com.",
-      path: "/register",
-      targetId: "email",
-      requirement: { type: "input", targetId: "email" }
-    },
-    {
-      title: "Submit Registration",
-      description: "Great! Now click 'Submit for Verification' to finish your registration.",
-      path: "/register",
-      targetId: "register-submit-btn",
-      requirement: { type: "click", targetId: "register-submit-btn" }
-    },
-    {
-      title: "Let's Sign In",
-      description: "Your account is ready for the tour. Please enter your email to log in.",
-      path: "/login",
-      targetId: "email",
-      requirement: { type: "input", targetId: "email" }
-    },
-    {
-      title: "Access Dashboard",
-      description: "Click 'Sign in' to enter your personal health portal.",
-      path: "/login",
-      targetId: "login-submit-btn",
-      requirement: { type: "click", targetId: "login-submit-btn" }
-    },
-    {
-      title: "Your Health Overview",
-      description: "This is your main page. It shows you everything important about your health at a glance.",
+      title: "Dashboard Overview",
+      description: "Welcome to your health command center. Here you can see your recent activity.",
       path: "/dashboard",
-      requirement: { type: "path", value: "/dashboard" }
     },
     {
-      title: "Your Medical History",
-      description: "This card shows all the notes and records your doctors have given you.",
+      title: "Medical History",
+      description: "Click here to see all your past records and doctor notes.",
       path: "/dashboard",
-      targetId: "card-history",
+      targetId: "nav-medical-history",
     },
     {
-      title: "Finish",
-      description: "You're all set! Enjoy using SympTax to stay healthy.",
+      title: "AI Health Bot",
+      description: "Need quick answers? Our AI assistant can help you understand your records.",
       path: "/dashboard",
+      targetId: "nav-ai-chat",
+    },
+    {
+      title: "Settings & Profile",
+      description: "Manage your identity and privacy settings from here.",
+      path: "/dashboard",
+      targetId: "nav-profile",
     },
   ],
   DOCTOR: [
     {
-      title: "Doctor Onboarding",
-      description: "Welcome, Doctor. Click 'Create Free Account' to register your clinic identity.",
-      path: "/",
-      targetId: "hero-register-btn",
-      requirement: { type: "click", targetId: "hero-register-btn" }
-    },
-    {
-      title: "Registration",
-      description: "Please fill out your clinical details to continue.",
-      path: "/register",
-      targetId: "name",
-      requirement: { type: "input", targetId: "name" }
-    },
-    {
-      title: "Doctor Dashboard",
-      description: "This is your control center. You can see your practice's volume here.",
+      title: "Clinic Control",
+      description: "Welcome, Doctor. This is your patient management dashboard.",
       path: "/dashboard",
-      requirement: { type: "path", value: "/dashboard" }
+    },
+    {
+      title: "Patient List",
+      description: "Quickly access your assigned patients and their histories.",
+      path: "/dashboard",
+      targetId: "nav-patients",
+    },
+    {
+      title: "Networking",
+      description: "Connect with other doctors and clinics in the SympTax network.",
+      path: "/dashboard",
+      targetId: "nav-network",
     },
   ],
   MASTER_ADMIN: [
     {
-      title: "Enterprise Setup",
-      description: "Welcome Admin. Click 'Create Free Account' to start registering a new branch.",
-      path: "/",
-      targetId: "hero-register-btn",
-      requirement: { type: "click", targetId: "hero-register-btn" }
-    },
-    {
-      title: "Institution Details",
-      description: "Please enter your hospital name and branch details.",
-      path: "/register",
-      targetId: "name",
-      requirement: { type: "input", targetId: "name" }
-    },
-    {
-      title: "Admin Portal",
-      description: "From here, you approve new doctors and ensure the branch is running smoothly.",
+      title: "Institution Admin",
+      description: "As a Master Admin, you govern this branch's operations.",
       path: "/dashboard",
-      requirement: { type: "path", value: "/dashboard" }
+    },
+    {
+      title: "Branch Management",
+      description: "Approve doctors and set up branch-specific guidelines here.",
+      path: "/dashboard",
+      targetId: "nav-master",
     },
   ],
 };

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { TUTORIAL_STEPS } from "@/lib/tutorialConfig";
+import { ONBOARDING_STEPS, DASHBOARD_STEPS, TutorialPhase, TutorialStep } from "@/lib/tutorialConfig";
 
 export type TutorialRole = "PATIENT" | "DOCTOR" | "MASTER_ADMIN" | null;
 
@@ -10,8 +10,10 @@ interface TutorialContextType {
   isActive: boolean;
   role: TutorialRole;
   step: number;
+  phase: TutorialPhase;
   canAdvance: boolean;
   startTutorial: (role: TutorialRole) => void;
+  startDashboardTour: (role: TutorialRole) => void;
   nextStep: () => void;
   setCanAdvance: (value: boolean) => void;
   reportTaskComplete: () => void;
@@ -23,12 +25,16 @@ const TutorialContext = createContext<TutorialContextType | undefined>(undefined
 export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isActive, setIsActive] = useState(false);
   const [role, setRole] = useState<TutorialRole>(null);
+  const [phase, setPhase] = useState<TutorialPhase>("ONBOARDING");
   const [step, setStep] = useState(0);
   const [canAdvance, setCanAdvance] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
-  const currentSteps = role ? TUTORIAL_STEPS[role] : [];
+  const currentSteps: TutorialStep[] = phase === "ONBOARDING" 
+    ? ONBOARDING_STEPS 
+    : (role ? DASHBOARD_STEPS[role] : []);
+    
   const currentStepData = currentSteps[step];
 
   // Load state from localStorage on init
@@ -39,17 +45,18 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setIsActive(parsed.isActive);
       setRole(parsed.role);
       setStep(parsed.step);
+      setPhase(parsed.phase || "ONBOARDING");
     }
   }, []);
 
   // Save state to localStorage on change
   useEffect(() => {
     if (isActive) {
-      localStorage.setItem("symptax_tutorial", JSON.stringify({ isActive, role, step }));
+      localStorage.setItem("symptax_tutorial", JSON.stringify({ isActive, role, step, phase }));
     } else {
       localStorage.removeItem("symptax_tutorial");
     }
-  }, [isActive, role, step]);
+  }, [isActive, role, step, phase]);
 
   // Task Gating & Auto-Catchup Logic
   useEffect(() => {
@@ -78,14 +85,24 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // No requirement means we can always advance
       setCanAdvance(true);
     }
-  }, [isActive, step, role, pathname, currentStepData, currentSteps]);
+  }, [isActive, step, role, phase, pathname, currentStepData, currentSteps]);
 
   const startTutorial = (chosenRole: TutorialRole) => {
     setRole(chosenRole);
+    setPhase("ONBOARDING");
     setStep(0);
     setIsActive(true);
     setCanAdvance(false);
     router.push("/");
+  };
+
+  const startDashboardTour = (chosenRole: TutorialRole) => {
+    setRole(chosenRole);
+    setPhase("DASHBOARD");
+    setStep(0);
+    setIsActive(true);
+    setCanAdvance(true); // Usually dashboard steps are guidance, not blockers
+    router.push("/dashboard");
   };
 
   const nextStep = () => {
@@ -109,8 +126,10 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         isActive,
         role,
         step,
+        phase,
         canAdvance,
         startTutorial,
+        startDashboardTour,
         nextStep,
         setCanAdvance,
         reportTaskComplete,
