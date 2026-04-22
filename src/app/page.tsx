@@ -6,125 +6,158 @@ import LogoAnimation from "@/components/LogoAnimation";
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
-      <header className="px-6 py-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-2">
+    <div className="flex flex-col min-h-screen bg-background transition-colors duration-300">
+      <header className="px-8 py-5 flex items-center justify-between border-b border-border bg-surface-flat/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
+        <div className="flex items-center gap-6">
           <img src="/symptax_logo.svg" alt="SympTax" className="h-14 w-auto" />
+          <div className="hidden lg:flex nav-prompt">
+            <span className="bg-white/50 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-border">ALT + S</span>
+            <span>Search directory</span>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <ThemeToggle />
-          <div className="hidden sm:flex items-center gap-3 ml-2">
+          <nav className="hidden md:flex items-center gap-2">
             <Link href="/login">
-              <Button variant="ghost" className="text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Log in</Button>
+              <Button variant="ghost" className="font-bold text-sm tracking-wide">LOG IN</Button>
             </Link>
             <Link href="/register">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md shadow-blue-500/20">Get Started</Button>
+              <Button className="raised-button bg-primary text-primary-foreground font-black px-6 rounded-xl hover:scale-105">
+                GET STARTED
+              </Button>
             </Link>
-          </div>
-          <div className="sm:hidden">
-             <Link href="/login">
-               <Button size="sm" variant="outline" className="dark:border-slate-700 dark:text-slate-300">Log in</Button>
-             </Link>
-          </div>
+          </nav>
         </div>
       </header>
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="py-24 px-6 text-center max-w-5xl mx-auto relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-blue-50/50 dark:bg-blue-900/10 blur-3xl -z-10 rounded-full" />
+        <section className="relative py-32 px-6 text-center max-w-6xl mx-auto overflow-visible">
+          {/* 3D background elements */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 blur-[120px] -z-10 rounded-full opacity-60" />
           
-          <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-8 leading-[1.1]">
-            Your Health Records, <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500 dark:from-blue-400 dark:to-indigo-300">Simplified.</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-surface-subtle border border-border-raised shadow-inner text-xs font-bold text-primary tracking-[0.2em] uppercase">
+            <ShieldCheck className="h-4 w-4" />
+            Enterprise Health Systems
+          </div>
+
+          <h1 className="text-6xl md:text-8xl font-black text-foreground tracking-tighter mb-8 leading-[0.95]">
+            Health Records, <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-blue-500 to-indigo-600 drop-shadow-sm">Re-imagined.</span>
           </h1>
 
-          <LogoAnimation />
-          <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-            SympTax makes it easy for patients and doctors to connect, view prescriptions, and access medical history anytime, even offline.
+          <div className="scale-110 md:scale-125 mb-16">
+            <LogoAnimation />
+          </div>
+
+          <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
+            SympTax centralizes your medical journey with a secure clinical ledger, 
+            <span className="text-foreground"> real-time telehealth</span>, and AI diagnostics.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-lg mx-auto">
-            <Link href="/register" className="w-full sm:w-auto flex-1">
-              <Button className="w-full h-14 text-lg bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.02]">
+
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <Link href="/register" className="group">
+              <div className="nav-prompt mb-2 mx-auto justify-center opacity-0 group-hover:opacity-100 transition-opacity">PRESS ENTER</div>
+              <Button className="raised-button w-full sm:w-80 h-16 text-xl bg-primary text-primary-foreground font-black rounded-2xl">
                 Create Free Account
               </Button>
             </Link>
-            <Link href="/login" className="w-full sm:w-auto flex-1">
-              <Button variant="outline" className="w-full h-14 text-lg border-2 border-slate-200 dark:border-slate-700 dark:text-white font-bold rounded-xl transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
+            <Link href="/login" className="group">
+              <div className="nav-prompt mb-2 mx-auto justify-center opacity-0 group-hover:opacity-100 transition-opacity">PRESS L</div>
+              <Button variant="outline" className="w-full sm:w-64 h-16 text-xl border-2 border-border-raised bg-surface-flat font-black rounded-2xl hover:bg-surface-subtle shadow-[var(--shadow-raised)]">
                 Sign In
               </Button>
             </Link>
           </div>
         </section>
 
-        {/* Features Section */}
-        <section className="py-24 bg-slate-50 dark:bg-slate-900/50 border-y border-slate-100 dark:border-slate-800">
+        {/* Features Section - Raised Cards */}
+        <section className="py-32 bg-surface-subtle border-y border-border-raised relative">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Why Choose SympTax?</h2>
-               <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">Built for clarity, speed, and privacy in modern healthcare.</p>
+            <div className="text-center mb-20">
+               <h2 className="text-4xl md:text-5xl font-black text-foreground mb-6">Built for the Modern Web</h2>
+               <p className="text-muted-foreground text-xl font-medium max-w-2xl mx-auto italic">Everything you need to manage your practice or your patient profile.</p>
             </div>
             
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="group p-8 rounded-3xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
-                <div className="bg-blue-100 dark:bg-blue-900/40 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-blue-600 transition-colors">
-                  <Stethoscope className="h-8 w-8 text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors" />
+            <div className="grid md:grid-cols-3 gap-10">
+              <div className="raised-card p-10 flex flex-col group">
+                <div className="bg-primary/10 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 border border-primary/20 shadow-inner group-hover:bg-primary group-hover:rotate-6 transition-all duration-500">
+                  <Stethoscope className="h-8 w-8 text-primary group-hover:text-primary-foreground" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Doctor-Patient Link</h3>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Seamlessly consult doctors, receive notes, and ask follow-up questions safely in our encrypted environment.
+                <h3 className="text-2xl font-black text-foreground mb-4">Doctor-Patient Link</h3>
+                <p className="text-muted-foreground leading-relaxed font-medium">
+                  Direct clinical channels with Master Admin oversight. Approved connections only for maximum privacy.
                 </p>
+                <div className="mt-auto pt-8">
+                   <div className="h-1 w-12 bg-primary rounded-full" />
+                </div>
               </div>
               
-              <div className="group p-8 rounded-3xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
-                <div className="bg-teal-100 dark:bg-teal-900/40 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-teal-600 transition-colors">
-                  <WifiOff className="h-8 w-8 text-teal-600 dark:text-teal-400 group-hover:text-white transition-colors" />
+              <div className="raised-card p-10 flex flex-col group">
+                <div className="bg-blue-100 dark:bg-blue-900/30 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 border border-blue-200 dark:border-blue-800 shadow-inner group-hover:bg-blue-600 transition-all duration-500">
+                  <HeartPulse className="h-8 w-8 text-blue-600 dark:text-blue-400 group-hover:text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Offline Access</h3>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Keep your critical prescriptions and medical notes available on your device even without an internet connection.
+                <h3 className="text-2xl font-black text-foreground mb-4">Smart Timeline</h3>
+                <p className="text-muted-foreground leading-relaxed font-medium">
+                  A unified digital ledger for diagnoses, prescriptions, and clinical media. No more paper records.
                 </p>
+                <div className="mt-auto pt-8">
+                   <div className="h-1 w-12 bg-blue-500 rounded-full" />
+                </div>
               </div>
 
-              <div className="group p-8 rounded-3xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
-                <div className="bg-indigo-100 dark:bg-indigo-900/40 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-indigo-600 transition-colors">
-                  <ShieldCheck className="h-8 w-8 text-indigo-600 dark:text-indigo-400 group-hover:text-white transition-colors" />
+              <div className="raised-card p-10 flex flex-col group">
+                <div className="bg-emerald-100 dark:bg-emerald-900/30 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 border border-emerald-200 dark:border-emerald-800 shadow-inner group-hover:bg-emerald-600 transition-all duration-500">
+                  <ShieldCheck className="h-8 w-8 text-emerald-600 dark:text-emerald-400 group-hover:text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Secure & Private</h3>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Your health data is protected via stringent security practices and safe encryption protocols to ensure confidentiality.
+                <h3 className="text-2xl font-black text-foreground mb-4">Hierarchical Security</h3>
+                <p className="text-muted-foreground leading-relaxed font-medium">
+                  Enterprise-grade governance. Multi-branch hospitals with delegated admin authority.
                 </p>
+                <div className="mt-auto pt-8">
+                   <div className="h-1 w-12 bg-emerald-500 rounded-full" />
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Simple CTA */}
-        <section className="py-24 px-6">
-           <div className="max-w-4xl mx-auto rounded-3xl bg-slate-900 dark:bg-blue-600 p-8 md:p-16 text-center transform shadow-2xl">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Ready to simplify your healthcare?</h2>
-              <p className="text-blue-100 text-lg mb-10 max-w-xl mx-auto">Join thousands of patients and doctors today. Free to register, accessible for all ages.</p>
-              <Link href="/register">
-                <Button size="lg" className="h-14 px-10 text-lg bg-white text-slate-900 hover:bg-blue-50 font-bold rounded-xl shadow-xl transition-all hover:scale-105">
-                   Get Started Now
-                </Button>
-              </Link>
+        {/* Website-First Interaction Section */}
+        <section className="py-32 px-6">
+           <div className="max-w-6xl mx-auto raised-card bg-slate-900 dark:bg-primary p-12 md:p-20 text-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-3xl -mr-32 -mt-32 rounded-full" />
+              <h2 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tighter">Revolutionizing Healthcare?</h2>
+              <p className="text-white/80 text-xl mb-12 max-w-2xl mx-auto font-medium">Join thousands of clinical professionals today. Experience the most advanced health ledger built for production.</p>
+              <div className="flex flex-col md:flex-row gap-4 items-center justify-center">
+                <Link href="/register">
+                  <Button size="lg" className="raised-button h-16 px-12 text-xl bg-white text-slate-900 hover:bg-slate-50 font-black rounded-2xl">
+                    Get Started Now
+                  </Button>
+                </Link>
+                <div className="nav-prompt border-white/20 text-white/60 animate-none">or Scroll to Learn More</div>
+              </div>
            </div>
         </section>
       </main>
 
-      <footer className="bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 py-12 px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-center md:text-left">
-           <div>
-              <div className="flex items-center gap-2 justify-center md:justify-start mb-4">
-                <img src="/symptax_logo.svg" alt="SympTax" className="h-12 w-auto" />
-              </div>
-              <p className="text-slate-500 dark:text-slate-400 max-w-sm">
-                Empowering patients and doctors through secure digital records and remote health insights.
+      <footer className="bg-surface-subtle border-t border-border-raised py-16 px-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
+           <div className="flex flex-col items-center md:items-start">
+              <img src="/symptax_logo.svg" alt="SympTax" className="h-12 w-auto mb-6" />
+              <p className="text-muted-foreground text-center md:text-left max-w-sm font-medium">
+                Empowering the digital health era with secure records and remote insight systems.
               </p>
            </div>
-           <p className="text-slate-400 dark:text-slate-600 text-sm md:text-right">
-             © 2026 SympTax. All rights reserved. Built for production.
+           
+           <div className="flex flex-wrap justify-center gap-8 text-[10px] uppercase font-black tracking-widest text-muted-foreground">
+              <Link href="#" className="hover:text-primary transition-colors">Architecture</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Privacy</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Security</Link>
+              <Link href="#" className="hover:text-primary transition-colors">API Docs</Link>
+           </div>
+
+           <p className="text-muted-foreground/60 text-xs font-mono">
+             © 2026 SympTax. Enterprise v1.2
            </p>
         </div>
       </footer>

@@ -27,94 +27,103 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Sidebar */}
       <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-transform duration-300 ease-in-out md:static md:translate-x-0
+        fixed inset-y-0 left-0 z-50 w-72 bg-surface-flat dark:bg-slate-900 border-r border-border-raised flex flex-col transition-transform duration-300 ease-in-out md:static md:translate-x-0 shadow-[var(--shadow-raised)]
         ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <img src="/symptax_logo.svg" alt="SympTax" className="h-12 w-auto" />
-          <button onClick={closeMenu} className="md:hidden p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
-            <X className="h-6 w-6" />
-          </button>
+        <div className="p-6 border-b border-border flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <img src="/symptax_logo.svg" alt="SympTax" className="h-12 w-auto" />
+            <button onClick={closeMenu} className="md:hidden p-1 text-slate-500 hover:bg-surface-subtle dark:hover:bg-slate-800 rounded-lg">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          
+          <div className="nav-prompt">
+            <span className="bg-white/50 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-border">ALT + H</span>
+            <span>Jump to home</span>
+          </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
-          <Link href="/dashboard" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-            <LayoutDashboard className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          <Link href="/dashboard" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold active:scale-[0.98]">
+            <LayoutDashboard className="h-5 w-5 text-primary" />
             Dashboard
           </Link>
+          <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground px-4 py-2 mt-4">Clinical Portal</div>
 
           {role !== "MASTER_ADMIN" && role !== "SUPER_ADMIN" && (
             <>
               {role === "PATIENT" && (
                 <>
-                  <Link href="/dashboard/medical-history" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-                    <Pill className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                  <Link href="/dashboard/medical-history" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+                    <Pill className="h-5 w-5 text-slate-400 group-hover:text-primary" />
                     Medical History
                   </Link>
-                  <Link href="/dashboard/timeline" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-                    <FileText className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                  <Link href="/dashboard/timeline" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+                    <FileText className="h-5 w-5 text-slate-400" />
                     Symptom Timeline
                   </Link>
-                  <Link href="/dashboard/insights" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                  <Link href="/dashboard/insights" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
                     <Lightbulb className="h-5 w-5 text-yellow-500" />
                     Insights
                   </Link>
-                  <Link href="/dashboard/ai-chat" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                  <Link href="/dashboard/ai-chat" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
                     <Bot className="h-5 w-5 text-purple-500" />
                     Health Bot
                   </Link>
                 </>
               )}
 
-              <Link href="/dashboard/network" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+              <Link href="/dashboard/network" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
                 <Share2 className="h-5 w-5 text-blue-500" />
                 Medical Network
               </Link>
 
               {(role === "PATIENT" || role === "DOCTOR") && (
-                <Link href="/dashboard/branches" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                <Link href="/dashboard/branches" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
                   <Building2 className="h-5 w-5 text-rose-500" />
                   Explore Branches
                 </Link>
               )}
 
               {role === "DOCTOR" && (
-                <Link href="/dashboard/patients" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-                  <Users className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                <Link href="/dashboard/patients" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+                  <Users className="h-5 w-5 text-slate-400" />
                   Patients
                 </Link>
               )}
 
-              <Link href="/dashboard/messages" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-                <MessageSquare className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+              <Link href="/dashboard/messages" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+                <MessageSquare className="h-5 w-5 text-slate-400" />
                 Messages
               </Link>
             </>
           )}
 
-          <Link href="/dashboard/profile" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-            <User className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+          <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground px-4 py-2 mt-4">Settings</div>
+          <Link href="/dashboard/profile" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-surface-subtle dark:hover:bg-slate-800 transition-all font-semibold">
+            <User className="h-5 w-5 text-slate-400" />
             My Profile
           </Link>
 
           {role === "MASTER_ADMIN" && (
-            <Link href="/dashboard/master" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors font-bold mt-4">
+            <Link href="/dashboard/master" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 border border-indigo-100 hover:bg-indigo-100 transition-all font-bold mt-4 shadow-sm">
               <ShieldCheck className="h-5 w-5" />
               Master Admin
             </Link>
           )}
 
           {role === "SUPER_ADMIN" && (
-            <Link href="/dashboard/superadmin" onClick={closeMenu} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors font-bold mt-4 shadow-sm border border-blue-100 dark:border-blue-900/50">
+            <Link href="/dashboard/superadmin" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/30 text-primary dark:text-blue-400 hover:bg-blue-100 transition-all font-bold mt-4 shadow-[var(--shadow-raised)] border border-blue-100 dark:border-blue-900/50">
               <ShieldCheck className="h-5 w-5" />
               Super Admin
             </Link>
           )}
         </nav>
 
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-3 mb-4 px-3">
-            <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold overflow-hidden shadow-sm">
+        <div className="p-4 border-t border-border bg-surface-subtle/30">
+          <div className="flex items-center gap-3 mb-4 px-3 bg-white dark:bg-slate-800/50 p-2 rounded-2xl border border-border shadow-sm">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden shadow-inner bevel">
               {session?.user?.image ? (
                 <img src={session.user.image} alt={session.user.name || "User"} className="h-full w-full object-cover" />
               ) : (
@@ -122,13 +131,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               )}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{session?.user?.name}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate capitalize">{(session?.user as any)?.role?.toLowerCase()}</p>
+              <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{session?.user?.name}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">{(session?.user as any)?.role}</p>
             </div>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
+            className="flex w-full items-center gap-3 px-4 py-2.5 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all font-bold"
           >
             <LogOut className="h-5 w-5" />
             Sign Out
@@ -139,24 +148,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between gap-2">
+        <header className="bg-surface-flat dark:bg-slate-900 border-b border-border p-4 flex items-center justify-between gap-2 shadow-sm sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsMenuOpen(true)}
-              className="md:hidden p-2 -ml-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+              className="md:hidden p-2 -ml-2 text-slate-600 dark:text-slate-400 hover:bg-surface-subtle rounded-lg"
             >
               <Menu className="h-6 w-6" />
             </button>
-            <img src="/symptax_logo.svg" alt="SympTax" className="h-11 w-auto md:hidden" />
+            <div className="flex items-center gap-2">
+              <img src="/symptax_logo.svg" alt="SympTax" className="h-11 w-auto md:hidden" />
+              <div className="hidden md:flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest bg-surface-subtle px-3 py-1.5 rounded-full border border-border shadow-inner">
+                <span className="text-primary truncate max-w-[200px]">Branch: {session?.user?.name ? "Active" : "Standard"}</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex nav-prompt mr-2">
+               <span className="bg-white/80 dark:bg-slate-800 px-1 rounded border border-border shadow-sm italic font-mono text-[9px]">ESC</span>
+               <span>Close Panel</span>
+            </div>
             <ThemeToggle />
             <NotificationsBell />
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
-          <div className="max-w-5xl mx-auto">
+        <main className="flex-1 overflow-auto bg-background p-4 md:p-8">
+          <div className="max-w-6xl mx-auto">
             {children}
           </div>
         </main>

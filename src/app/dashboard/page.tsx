@@ -32,31 +32,54 @@ export default function DashboardPage() {
   const unreadNotifs = notifications.filter(n => !n.isRead);
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-          Welcome back, {session.user?.name} 👋
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1 text-lg">
-          {isDoctor
-            ? "Manage your patients, add records, and stay connected."
-            : "Your health dashboard — records, insights, and support in one place."}
-        </p>
+    <div className="space-y-10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-border-raised">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+             <div className="nav-prompt animate-none bg-primary/10 border-primary/20 text-primary">SESSION ACTIVE</div>
+             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">/ Overview</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground">
+            Welcome, {session.user?.name?.split(' ')[0]}
+          </h1>
+          <p className="text-muted-foreground mt-2 text-lg font-medium">
+            {isDoctor
+              ? "Manage your clinical directory and patient records."
+              : "Unified health ledger and clinical insights."}
+          </p>
+        </div>
+        <div className="flex gap-2">
+           <div className="nav-prompt md:flex hidden">
+             <span className="bg-white/50 dark:bg-slate-800 px-1 rounded border border-border italic font-mono text-[9px]">P</span>
+             <span>Account Settings</span>
+           </div>
+        </div>
       </div>
 
       {!isDoctor && alerts.length > 0 && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-bold text-red-800 dark:text-red-300 text-lg">Action Required</h3>
-              {alerts.map(a => (
-                <p key={a.id} className="text-red-700 dark:text-red-400 text-sm mt-1">
-                  <strong>{a.title}:</strong> {a.content?.substring(0, 120)}...
-                </p>
-              ))}
-              <Link href="/dashboard/timeline" className="text-red-600 dark:text-red-400 font-medium text-sm mt-2 inline-block hover:underline">
-                View full details →
+        <div className="bg-red-50 dark:bg-red-950/20 border-2 border-red-200 dark:border-red-900 shadow-xl rounded-3xl p-6 relative overflow-hidden transition-all hover:scale-[1.01]">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 blur-3xl -mr-16 -mt-16 rounded-full" />
+          <div className="flex items-start gap-4">
+            <div className="bg-red-100 dark:bg-red-900/40 p-3 rounded-2xl border border-red-200 dark:border-red-800 shadow-inner">
+               <AlertTriangle className="h-7 w-7 text-red-600 dark:text-red-400" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                 <h3 className="font-black text-red-800 dark:text-red-300 text-xl uppercase tracking-tight">Clinical Action Required</h3>
+                 <div className="nav-prompt bg-red-100 border-red-200 text-red-700 animate-none">Priority 1</div>
+              </div>
+              <div className="mt-4 space-y-4">
+                {alerts.map(a => (
+                  <div key={a.id} className="bg-white/50 dark:bg-black/20 p-4 rounded-2xl border border-red-100 dark:border-red-900/40">
+                    <p className="text-red-900 dark:text-red-300 font-bold leading-snug">
+                      <span className="opacity-60 text-xs block mb-1">RECORD: {a.title}</span>
+                      {a.content?.substring(0, 160)}...
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <Link href="/dashboard/timeline" className="mt-6 inline-flex items-center gap-2 text-red-700 dark:text-red-400 font-black text-sm hover:underline group">
+                GO TO TIMELINE <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
@@ -64,86 +87,89 @@ export default function DashboardPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center p-12">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <div className="flex justify-center p-20">
+          <Loader2 className="h-12 w-12 animate-spin text-primary opacity-50" />
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Records</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{records.length}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="raised-card p-6 flex flex-col items-center text-center">
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Total Ledger Records</span>
+              <p className="text-4xl font-black text-foreground">{records.length}</p>
             </div>
-            <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Diagnoses</p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mt-1">{records.filter(r => r.type === "DIAGNOSIS").length}</p>
+            <div className="raised-card p-6 flex flex-col items-center text-center">
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Active Diagnoses</span>
+              <p className="text-4xl font-black text-orange-500">{records.filter(r => r.type === "DIAGNOSIS").length}</p>
             </div>
-            <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Prescriptions</p>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{records.filter(r => r.type === "PRESCRIPTION").length}</p>
+            <div className="raised-card p-6 flex flex-col items-center text-center">
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Pending Prescriptions</span>
+              <p className="text-4xl font-black text-primary">{records.filter(r => r.type === "PRESCRIPTION").length}</p>
             </div>
-            <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Notifications</p>
-              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{unreadNotifs.length} new</p>
+            <div className="raised-card p-6 flex flex-col items-center text-center">
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">New Alerts</span>
+              <p className="text-4xl font-black text-emerald-500">{unreadNotifs.length}</p>
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {!isDoctor && (
               <>
-                <Card className="group hover:shadow-lg transition-all duration-200 border-slate-200 dark:border-slate-700 dark:bg-slate-800 overflow-hidden">
-                  <div className="h-1 bg-gradient-to-r from-blue-500 to-blue-600" />
-                  <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle className="text-xl dark:text-white">Medical History</CardTitle>
-                      <CardDescription className="mt-1">Chronological timeline</CardDescription>
+                <Card className="raised-card p-0 overflow-hidden border-none shadow-none group">
+                  <div className="h-1.5 bg-primary w-full" />
+                  <CardHeader className="p-8">
+                    <div className="flex items-center justify-between mb-4">
+                       <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20 shadow-inner group-hover:scale-110 transition-transform">
+                          <FileText className="h-7 w-7 text-primary" />
+                       </div>
+                       <Button variant="ghost" size="icon" className="nav-prompt scale-100 flex h-6 w-6">H</Button>
                     </div>
-                    <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-full group-hover:scale-110 transition-transform">
-                      <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                    </div>
+                    <CardTitle className="text-2xl font-black tracking-tight">Medical History</CardTitle>
+                    <CardDescription className="text-base font-medium">Unified clinical timeline</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex justify-between items-center">
-                    <span className="text-sm text-slate-500 dark:text-slate-400">{records.length} records</span>
+                  <CardContent className="px-8 pb-8 flex justify-between items-center bg-surface-subtle/50 border-t border-border">
+                    <span className="text-xs font-black text-muted-foreground">{records.length} RECORDS FOUND</span>
                     <Link href="/dashboard/timeline">
-                      <Button variant="ghost" size="sm" className="gap-1 text-blue-600 dark:text-blue-400">View <ArrowRight className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="sm" className="font-black text-primary hover:bg-primary/10 gap-2">OPEN <ArrowRight className="h-4 w-4" /></Button>
                     </Link>
                   </CardContent>
                 </Card>
 
-                <Card className="group hover:shadow-lg transition-all duration-200 border-slate-200 dark:border-slate-700 dark:bg-slate-800 overflow-hidden">
-                  <div className="h-1 bg-gradient-to-r from-yellow-400 to-yellow-500" />
-                  <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle className="text-xl dark:text-white">Insights</CardTitle>
-                      <CardDescription className="mt-1">What to do & avoid</CardDescription>
+                <Card className="raised-card p-0 overflow-hidden border-none shadow-none group">
+                  <div className="h-1.5 bg-yellow-500 w-full" />
+                  <CardHeader className="p-8">
+                    <div className="flex items-center justify-between mb-4">
+                       <div className="bg-yellow-500/10 p-4 rounded-2xl border border-yellow-500/20 shadow-inner group-hover:scale-110 transition-transform">
+                          <Lightbulb className="h-7 w-7 text-yellow-600 dark:text-yellow-400" />
+                       </div>
+                       <Button variant="ghost" size="icon" className="nav-prompt scale-100 flex h-6 w-6">I</Button>
                     </div>
-                    <div className="bg-yellow-100 dark:bg-yellow-900/40 p-3 rounded-full group-hover:scale-110 transition-transform">
-                      <Lightbulb className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-                    </div>
+                    <CardTitle className="text-2xl font-black tracking-tight">Clinical Insights</CardTitle>
+                    <CardDescription className="text-base font-medium">AI wellbeing analysis</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex justify-between items-center">
-                    <span className="text-sm text-slate-500 dark:text-slate-400">Based on diagnoses</span>
+                  <CardContent className="px-8 pb-8 flex justify-between items-center bg-surface-subtle/50 border-t border-border">
+                    <span className="text-xs font-black text-muted-foreground">PATTERN BASED</span>
                     <Link href="/dashboard/insights">
-                      <Button variant="ghost" size="sm" className="gap-1 text-yellow-600 dark:text-yellow-400">View <ArrowRight className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="sm" className="font-black text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/10 gap-2">VIEW <ArrowRight className="h-4 w-4" /></Button>
                     </Link>
                   </CardContent>
                 </Card>
 
-                <Card className="group hover:shadow-lg transition-all duration-200 border-slate-200 dark:border-slate-700 dark:bg-slate-800 overflow-hidden">
-                  <div className="h-1 bg-gradient-to-r from-purple-500 to-purple-600" />
-                  <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle className="text-xl dark:text-white">AI Health Bot</CardTitle>
-                      <CardDescription className="mt-1">General symptom guidance</CardDescription>
+                <Card className="raised-card p-0 overflow-hidden border-none shadow-none group">
+                  <div className="h-1.5 bg-purple-600 w-full" />
+                  <CardHeader className="p-8">
+                    <div className="flex items-center justify-between mb-4">
+                       <div className="bg-purple-600/10 p-4 rounded-2xl border border-purple-600/20 shadow-inner group-hover:scale-110 transition-transform">
+                          <Bot className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+                       </div>
+                       <Button variant="ghost" size="icon" className="nav-prompt scale-100 flex h-6 w-6">C</Button>
                     </div>
-                    <div className="bg-purple-100 dark:bg-purple-900/40 p-3 rounded-full group-hover:scale-110 transition-transform">
-                      <Bot className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                    </div>
+                    <CardTitle className="text-2xl font-black tracking-tight">AI Health Bot</CardTitle>
+                    <CardDescription className="text-base font-medium">Symmetry Medical Core</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex justify-between items-center">
-                    <span className="text-sm text-slate-500 dark:text-slate-400">Non-diagnostic</span>
+                  <CardContent className="px-8 pb-8 flex justify-between items-center bg-surface-subtle/50 border-t border-border">
+                    <span className="text-xs font-black text-muted-foreground">FLUID INTERACTIVE</span>
                     <Link href="/dashboard/ai-chat">
-                      <Button variant="ghost" size="sm" className="gap-1 text-purple-600 dark:text-purple-400">Chat <ArrowRight className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="sm" className="font-black text-purple-600 dark:text-purple-400 hover:bg-purple-600/10 gap-2">CHAT <ArrowRight className="h-4 w-4" /></Button>
                     </Link>
                   </CardContent>
                 </Card>
@@ -151,44 +177,55 @@ export default function DashboardPage() {
             )}
 
             {isDoctor && (
-              <Card className="group hover:shadow-lg transition-all duration-200 border-slate-200 dark:border-slate-700 dark:bg-slate-800 overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-blue-500 to-blue-600" />
-                <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="text-xl dark:text-white">Patients</CardTitle>
-                    <CardDescription className="mt-1">Search & manage</CardDescription>
+              <Card className="raised-card p-0 overflow-hidden border-none shadow-none group">
+                <div className="h-1.5 bg-primary w-full" />
+                <CardHeader className="p-8">
+                  <div className="flex items-center justify-between mb-4">
+                     <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20 shadow-inner group-hover:scale-110 transition-transform">
+                        <Users className="h-7 w-7 text-primary" />
+                     </div>
                   </div>
-                  <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-full group-hover:scale-110 transition-transform">
-                    <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
+                  <CardTitle className="text-2xl font-black tracking-tight">Patient Directory</CardTitle>
+                  <CardDescription className="text-base font-medium">Manage clinical access</CardDescription>
                 </CardHeader>
-                <CardContent className="flex justify-between items-center">
-                  <span className="text-sm text-slate-500 dark:text-slate-400">View all patients</span>
+                <CardContent className="px-8 pb-8 flex justify-between items-center bg-surface-subtle/50 border-t border-border">
+                  <span className="text-xs font-black text-muted-foreground">SECURE ACCESS</span>
                   <Link href="/dashboard/patients">
-                    <Button variant="ghost" size="sm" className="gap-1 text-blue-600 dark:text-blue-400">Open <ArrowRight className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="sm" className="font-black text-primary hover:bg-primary/10 gap-2">OPEN <ArrowRight className="h-4 w-4" /></Button>
                   </Link>
                 </CardContent>
               </Card>
             )}
 
-            <Card className="group hover:shadow-lg transition-all duration-200 border-slate-200 dark:border-slate-700 dark:bg-slate-800 overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-emerald-500 to-emerald-600" />
-              <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl dark:text-white">Messages</CardTitle>
-                  <CardDescription className="mt-1">Secure communication</CardDescription>
+            <Card className="raised-card p-0 overflow-hidden border-none shadow-none group">
+              <div className="h-1.5 bg-emerald-600 w-full" />
+              <CardHeader className="p-8">
+                <div className="flex items-center justify-between mb-4">
+                   <div className="bg-emerald-600/10 p-4 rounded-2xl border border-emerald-600/20 shadow-inner group-hover:scale-110 transition-transform">
+                      <MessageSquare className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+                   </div>
+                   <Button variant="ghost" size="icon" className="nav-prompt scale-100 flex h-6 w-6">M</Button>
                 </div>
-                <div className="bg-emerald-100 dark:bg-emerald-900/40 p-3 rounded-full group-hover:scale-110 transition-transform">
-                  <MessageSquare className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-                </div>
+                <CardTitle className="text-2xl font-black tracking-tight">Messages</CardTitle>
+                <CardDescription className="text-base font-medium">Clinical communication</CardDescription>
               </CardHeader>
-              <CardContent className="flex justify-between items-center">
-                <span className="text-sm text-slate-500 dark:text-slate-400">Contact directly</span>
+              <CardContent className="px-8 pb-8 flex justify-between items-center bg-surface-subtle/50 border-t border-border">
+                <span className="text-xs font-black text-muted-foreground">ENCRYPTED END-TO-END</span>
                 <Link href="/dashboard/messages">
-                  <Button variant="ghost" size="sm" className="gap-1 text-emerald-600 dark:text-emerald-400">Open <ArrowRight className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="sm" className="font-black text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600/10 gap-2">PORTAL <ArrowRight className="h-4 w-4" /></Button>
                 </Link>
               </CardContent>
             </Card>
+          </div>
+
+          <div className="raised-card p-8 bg-surface-subtle/50 border-dashed">
+             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                  <h4 className="font-black text-lg text-foreground">Need help navigating?</h4>
+                  <p className="text-muted-foreground text-sm font-medium">Use the keyboard shortcuts (hints in circles) or the sidebar to explore.</p>
+                </div>
+                <Button variant="outline" className="raised-button border-border-raised bg-surface-flat font-black text-xs px-6 py-4 rounded-xl">PRESS ESC FOR MAIN MENU</Button>
+             </div>
           </div>
         </>
       )}
