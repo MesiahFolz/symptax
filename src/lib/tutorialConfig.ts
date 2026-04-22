@@ -14,43 +14,43 @@ export type TutorialPhase = "ONBOARDING" | "DASHBOARD";
 
 export const ONBOARDING_STEPS: TutorialStep[] = [
   {
-    title: "Welcome to SympTax",
-    description: "To start your journey, please click 'Create Free Account' below.",
+    title: "Start Journey",
+    description: "Please click this (Create Free Account button)",
     path: "/",
     targetId: "hero-register-btn",
     requirement: { type: "click", targetId: "hero-register-btn" }
   },
   {
-    title: "Registration",
-    description: "Please type your Legal Full Name in the box highlighted.",
+    title: "Full Name",
+    description: "Please fill in this (Legal Full Name)",
     path: "/register",
     targetId: "name",
     requirement: { type: "input", targetId: "name" }
   },
   {
-    title: "Your Email",
-    description: "Enter your email address to continue.",
+    title: "Email Address",
+    description: "Please fill in this (Personal Email)",
     path: "/register",
     targetId: "email",
     requirement: { type: "input", targetId: "email" }
   },
   {
-    title: "Submit Registration",
-    description: "Click 'Submit for Verification' to finish your registration.",
+    title: "Verification",
+    description: "Please click this (Submit for Verification button)",
     path: "/register",
     targetId: "register-submit-btn",
     requirement: { type: "click", targetId: "register-submit-btn" }
   },
   {
-    title: "Let's Sign In",
-    description: "Your account is ready. Please enter your email to log in.",
+    title: "Sign In",
+    description: "Please fill in this (Email)",
     path: "/login",
     targetId: "email",
     requirement: { type: "input", targetId: "email" }
   },
   {
-    title: "Access Dashboard",
-    description: "Click 'Sign in' to enter your health portal. The onboarding tour will finish here.",
+    title: "Dashboard Entrance",
+    description: "Please click this (Sign in button)",
     path: "/login",
     targetId: "login-submit-btn",
     requirement: { type: "click", targetId: "login-submit-btn" }
