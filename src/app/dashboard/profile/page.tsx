@@ -7,12 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Ruler, Weight, Droplets, Calendar, Home, Save, Loader2, Camera, ShieldCheck, FileText, Upload, Trash2, ExternalLink } from "lucide-react";
+import { User, Ruler, Weight, Droplets, Calendar, Home, Save, Loader2, Camera, ShieldCheck, ShieldAlert, FileText, Upload, ExternalLink, ArrowRight, CheckCircle2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@supabase/supabase-js";
-
-// Export force-dynamic to ensure this page is not statically generated at build time
-export const dynamic = "force-dynamic";
 
 export default function ProfilePage() {
    const { data: session, update } = useSession();
@@ -21,7 +18,15 @@ export default function ProfilePage() {
    const [uploading, setUploading] = useState(false);
    const [files, setFiles] = useState<any[]>([]);
 
-   // Initialize Supabase Client lazily
+   // Verification state
+   const [verifyLoading, setVerifyLoading] = useState(false);
+   const [verificationDoc, setVerificationDoc] = useState("");
+   const [requestedRole, setRequestedRole] = useState("PATIENT");
+   const [verificationSubmitted, setVerificationSubmitted] = useState(false);
+
+   const isVerified = (session?.user as any)?.isVerified || false;
+   const currentRole = (session?.user as any)?.role || "PATIENT";
+
    const getSupabase = () => {
       return createClient(
          process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
@@ -83,7 +88,6 @@ export default function ProfilePage() {
       setUploading(true);
       try {
          const supabase = getSupabase();
-         // 1. Upload to Supabase Storage
          const fileExt = file.name.split(".").pop();
          const fileName = `${Math.random()}.${fileExt}`;
          const filePath = `${session?.user?.id}/${fileName}`;
@@ -94,12 +98,10 @@ export default function ProfilePage() {
 
          if (error) throw error;
 
-         // 2. Get Public URL
          const { data: { publicUrl } } = supabase.storage
             .from("medical-files")
             .getPublicUrl(filePath);
 
-         // 3. Register in Database
          await fetch("/api/medical-files", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -110,12 +112,85 @@ export default function ProfilePage() {
             })
          });
 
-         toast.success("Document uploaded successfully");
+         toast.success("Document uploaded successfully!");
          fetchFiles();
       } catch (err) {
-         toast.error("Upload failed. Make sure 'medical-files' bucket exists in Supabase.");
+         toast.error("Upload failed", {
+            description: "Make sure 'medical-files' bucket exists in Supabase.",
+         });
       } finally {
          setUploading(false);
+      }
+   };
+
+   const handleVerificationUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setUploading(true);
+      try {
+         const supabase = getSupabase();
+         const fileExt = file.name.split(".").pop();
+         const fileName = `verification-${Date.now()}.${fileExt}`;
+         const filePath = `verifications/${session?.user?.id}/${fileName}`;
+
+         const { error } = await supabase.storage
+            .from("medical-files")
+            .upload(filePath, file);
+
+         if (error) throw error;
+
+         const { data: { publicUrl } } = supabase.storage
+            .from("medical-files")
+            .getPublicUrl(filePath);
+
+         setVerificationDoc(publicUrl);
+         toast.success("ID photo uploaded!", {
+            description: "Now select your role and submit for verification.",
+         });
+      } catch (err) {
+         toast.error("ID upload failed", {
+            description: "Please try again.",
+         });
+      } finally {
+         setUploading(false);
+      }
+   };
+
+   const handleSubmitVerification = async () => {
+      if (!verificationDoc) {
+         toast.error("Please upload your ID photo first");
+         return;
+      }
+
+      setVerifyLoading(true);
+      try {
+         const res = await fetch("/api/profile/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+               verificationDoc,
+               requestedRole,
+            }),
+         });
+
+         if (res.ok) {
+            setVerificationSubmitted(true);
+            toast.success("Verification request submitted!", {
+               description: "The Super Admin will review your identity. You'll be notified once verified.",
+            });
+         } else {
+            const data = await res.json();
+            toast.error("Verification submission failed", {
+               description: data.message || "Please try again.",
+            });
+         }
+      } catch (err) {
+         toast.error("Connection error", {
+            description: "Please check your internet connection.",
+         });
+      } finally {
+         setVerifyLoading(false);
       }
    };
 
@@ -131,10 +206,12 @@ export default function ProfilePage() {
          });
 
          if (res.ok) {
-            toast.success("Profile Updated Successfully");
-            update(); // Refresh session
+            toast.success("Profile updated successfully!");
+            update();
          } else {
-            toast.error("Error saving profile");
+            toast.error("Failed to save profile", {
+               description: "Please try again.",
+            });
          }
       } catch (err) {
          toast.error("Connection error");
@@ -143,25 +220,138 @@ export default function ProfilePage() {
       }
    };
 
-   if (fetching) return <div className="p-8"><Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600" /></div>;
+   if (fetching) return <div className="p-8"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>;
 
    return (
       <div className="max-w-4xl mx-auto space-y-8 p-1 md:p-6 pb-20">
          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-               <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-                  <User className="h-8 w-8 text-blue-600" />
-                  Patient Profile
+               <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
+                  <User className="h-8 w-8 text-primary" />
+                  My Profile
                </h1>
-               <p className="text-slate-500 mt-1">Manage your clinical characteristics and medical papers.</p>
+               <p className="text-slate-500 mt-1 text-sm">Manage your account and verify your identity.</p>
             </div>
-            <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-full border border-emerald-100 dark:border-emerald-800">
-               <ShieldCheck className="h-4 w-4 text-emerald-600" />
-               <span className="text-xs font-bold text-emerald-700 uppercase tracking-widest">
-                  {session?.user?.isVerified ? "Verified Identity" : "Pending Verification"}
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
+               isVerified
+                  ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800"
+                  : "bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800"
+            }`}>
+               {isVerified ? (
+                  <ShieldCheck className="h-4 w-4 text-emerald-600" />
+               ) : (
+                  <ShieldAlert className="h-4 w-4 text-amber-600" />
+               )}
+               <span className={`text-xs font-black uppercase tracking-widest ${
+                  isVerified ? "text-emerald-700" : "text-amber-700"
+               }`}>
+                  {isVerified ? `Verified ${currentRole}` : "Not Verified"}
                </span>
             </div>
          </div>
+
+         {/* === VERIFICATION SECTION (shown only if NOT verified) === */}
+         {!isVerified && !verificationSubmitted && (
+            <Card className="border-2 border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-900/10 shadow-xl overflow-hidden">
+               <CardHeader className="border-b border-amber-200/50 dark:border-amber-800/30">
+                  <div className="flex items-center gap-3">
+                     <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
+                        <ShieldAlert className="h-6 w-6 text-amber-600" />
+                     </div>
+                     <div>
+                        <CardTitle className="text-lg font-black">Verify Your Identity</CardTitle>
+                        <CardDescription className="text-xs mt-0.5">
+                           Upload a valid government ID and select your role to unlock all features.
+                        </CardDescription>
+                     </div>
+                  </div>
+               </CardHeader>
+               <CardContent className="p-6 space-y-6">
+                  {/* ID Upload */}
+                  <div className="space-y-2">
+                     <Label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                        Government ID / Professional License
+                     </Label>
+                     <div className="relative">
+                        <div className={`h-40 w-full rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all cursor-pointer ${
+                           verificationDoc
+                              ? "border-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/10"
+                              : "border-slate-300 dark:border-slate-700 hover:border-primary hover:bg-primary/5"
+                        }`}>
+                           {verificationDoc ? (
+                              <div className="flex flex-col items-center gap-2">
+                                 <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+                                 <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">ID Photo Uploaded</span>
+                                 <img src={verificationDoc} className="h-16 w-auto rounded-lg object-cover border-2 border-white dark:border-slate-800 shadow-md" />
+                              </div>
+                           ) : (
+                              <>
+                                 <Camera className="h-8 w-8 text-slate-300 dark:text-slate-600 mb-2" />
+                                 <span className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Tap to upload ID photo</span>
+                                 <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">JPEG, PNG • Max 10MB</span>
+                              </>
+                           )}
+                           <input
+                              type="file"
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                              accept="image/*"
+                              onChange={handleVerificationUpload}
+                              disabled={uploading}
+                           />
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Role Selection */}
+                  <div className="space-y-2">
+                     <Label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                        What is your role?
+                     </Label>
+                     <Select value={requestedRole} onValueChange={setRequestedRole}>
+                        <SelectTrigger className="h-12 rounded-xl">
+                           <SelectValue placeholder="Select your role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                           <SelectItem value="PATIENT">Patient</SelectItem>
+                           <SelectItem value="DOCTOR">Doctor</SelectItem>
+                           <SelectItem value="MASTER_ADMIN">Master Admin (Hospital Branch Manager)</SelectItem>
+                        </SelectContent>
+                     </Select>
+                     <p className="text-[10px] text-slate-400 leading-relaxed">
+                        The Super Admin will verify your identity and role based on your uploaded document.
+                     </p>
+                  </div>
+               </CardContent>
+               <CardFooter className="bg-white/50 dark:bg-slate-900/30 border-t border-amber-200/50 dark:border-amber-800/30 p-4">
+                  <Button
+                     onClick={handleSubmitVerification}
+                     disabled={!verificationDoc || verifyLoading}
+                     className="w-full h-12 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-xl text-sm tracking-wide flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                     {verifyLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                     {verifyLoading ? "Submitting..." : "Submit for Verification"}
+                     {!verifyLoading && <ArrowRight className="h-4 w-4" />}
+                  </Button>
+               </CardFooter>
+            </Card>
+         )}
+
+         {/* Verification Pending Banner */}
+         {!isVerified && verificationSubmitted && (
+            <Card className="border-2 border-blue-200 dark:border-blue-800/50 bg-blue-50/50 dark:bg-blue-900/10">
+               <CardContent className="p-6 flex items-center gap-4">
+                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl shrink-0">
+                     <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+                  </div>
+                  <div>
+                     <h3 className="font-black text-blue-900 dark:text-blue-200">Verification Pending</h3>
+                     <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
+                        Your identity is being reviewed by the Super Admin. You'll gain access to additional features once approved.
+                     </p>
+                  </div>
+               </CardContent>
+            </Card>
+         )}
 
          <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Profile Photo & ID Card */}
@@ -180,19 +370,19 @@ export default function ProfilePage() {
                               <User className="h-16 w-16 text-slate-300" />
                            </div>
                         )}
-                        <button type="button" className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-xl shadow-lg border-2 border-white dark:border-slate-900">
+                        <button type="button" className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground p-2 rounded-xl shadow-lg border-2 border-white dark:border-slate-900">
                            <Camera className="h-4 w-4" />
                         </button>
                      </div>
                      <h3 className="font-bold text-lg">{session?.user?.name}</h3>
-                     <p className="text-xs font-mono text-slate-500 uppercase mt-1">{session?.user?.publicId}</p>
+                     <p className="text-xs font-mono text-slate-500 uppercase mt-1">{(session?.user as any)?.publicId}</p>
                   </CardContent>
                </Card>
 
-               <Card className="bg-blue-600 text-white">
+               <Card className="bg-primary text-primary-foreground">
                   <CardContent className="p-6">
                      <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">Clinical ST-ID</p>
-                     <p className="text-2xl font-black tracking-tighter">{session?.user?.publicId}</p>
+                     <p className="text-2xl font-black tracking-tighter">{(session?.user as any)?.publicId}</p>
                      <div className="mt-6 pt-4 border-t border-white/20">
                         <p className="text-[10px] opacity-70 leading-relaxed font-medium">Use this ID to connect with Doctors or send networking requests.</p>
                      </div>
@@ -270,20 +460,20 @@ export default function ProfilePage() {
                      </div>
                   </CardContent>
                   <CardFooter className="bg-slate-50/50 dark:bg-slate-900 border-t justify-end p-4">
-                     <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white gap-2" disabled={loading}>
+                     <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]" disabled={loading}>
                         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                         Save Profile Changes
                      </Button>
                   </CardFooter>
                </Card>
 
-               {/* NEW: Medical Document Vault */}
+               {/* Medical Document Vault */}
                <Card className="border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
                   <CardHeader className="bg-slate-50/50 dark:bg-slate-900 border-b">
                      <div className="flex items-center justify-between">
                         <div>
                            <CardTitle className="flex items-center gap-2 italic">
-                              <FileText className="h-5 w-5 text-blue-600" /> Medical Vault
+                              <FileText className="h-5 w-5 text-primary" /> Medical Vault
                            </CardTitle>
                            <CardDescription>X-Rays, lab results, and clinical papers.</CardDescription>
                         </div>
@@ -297,7 +487,7 @@ export default function ProfilePage() {
                            />
                            <Label
                               htmlFor="file-upload"
-                              className={`flex items-center gap-2 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+                              className={`flex items-center gap-2 cursor-pointer bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold transition-all ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
                            >
                               {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                               Upload New
@@ -324,7 +514,7 @@ export default function ProfilePage() {
                                     </div>
                                  </div>
                                  <div className="flex items-center gap-2">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600" onClick={() => window.open(file.fileUrl, "_blank")}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => window.open(file.fileUrl, "_blank")}>
                                        <ExternalLink className="h-4 w-4" />
                                     </Button>
                                  </div>

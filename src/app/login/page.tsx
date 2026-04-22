@@ -1,41 +1,24 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { HeartPulse, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { useTutorial } from "@/components/tutorial/TutorialContext";
-import { ONBOARDING_STEPS } from "@/lib/tutorialConfig";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isActive, step, reportTaskComplete, exitTutorial, phase } = useTutorial();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Tutorial Task Detection Logic
-  useEffect(() => {
-    if (!isActive || phase !== "ONBOARDING") return;
-
-    const currentStep = ONBOARDING_STEPS[step];
-    if (!currentStep?.requirement) return;
-
-    const { type, targetId } = currentStep.requirement;
-
-    if (type === "input") {
-      if (targetId === "email" && email.includes("@")) reportTaskComplete();
-      if (targetId === "password" && password.length > 5) reportTaskComplete();
-    }
-  }, [isActive, phase, step, email, password]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,16 +34,14 @@ export default function LoginPage() {
     setLoading(false);
 
     if (res?.error) {
-      if (res.error === "ACCOUNT_PENDING_VERIFICATION") {
-        setError("Your account is pending approval by the Master Admin. Please check back later.");
-      } else {
-        setError("Invalid email or password");
-      }
+      setError("Invalid email or password");
+      toast.error("Sign in failed", {
+        description: "Please check your email and password.",
+      });
     } else {
-      // If onboarding tutorial is active, stop it now
-      if (isActive && phase === "ONBOARDING") {
-        exitTutorial();
-      }
+      toast.success("Welcome back!", {
+        description: "Redirecting to your dashboard...",
+      });
       router.push("/dashboard");
     }
   };
@@ -71,26 +52,26 @@ export default function LoginPage() {
         <ThemeToggle />
       </div>
 
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center justify-center">
-          <img src="/symptax_logo.svg" alt="SympTax" className="h-28 w-auto mb-4" />
-          <p className="text-slate-500 dark:text-slate-400 mt-2">Digital Health Record Platform</p>
+          <img src="/symptax_logo.svg" alt="SympTax" className="h-24 w-auto mb-2" />
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Digital Health Record Platform</p>
         </div>
 
-        <Card className="border-0 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 dark:bg-slate-900 dark:border dark:border-slate-800">
-          <CardHeader>
-            <CardTitle className="dark:text-white">Welcome back</CardTitle>
-            <CardDescription className="dark:text-slate-400">Enter your credentials to access your account</CardDescription>
+        <Card className="border-0 shadow-2xl dark:bg-slate-900 dark:border dark:border-slate-800">
+          <CardHeader className="pb-4">
+            <CardTitle className="dark:text-white text-xl font-black">Welcome back</CardTitle>
+            <CardDescription className="dark:text-slate-400 text-xs">Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-md border border-red-100 dark:border-red-800">
+                <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs rounded-xl border border-red-100 dark:border-red-800 font-medium">
                   {error}
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="email" className="dark:text-slate-300">Email</Label>
+                <Label htmlFor="email" className="dark:text-slate-300 text-xs font-bold uppercase tracking-wider">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -98,13 +79,13 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500"
+                  className="h-12 rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500"
                 />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="dark:text-slate-300">Password</Label>
-                  <Link href="/auth/forgot-password" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                  <Label htmlFor="password" className="dark:text-slate-300 text-xs font-bold uppercase tracking-wider">Password</Label>
+                  <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline font-semibold">
                     Forgot Password?
                   </Link>
                 </div>
@@ -115,7 +96,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-white pr-10"
+                    className="h-12 rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-white pr-10"
                   />
                   <button
                     type="button"
@@ -126,14 +107,20 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-              <Button type="submit" id="login-submit-btn" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-black rounded-xl text-sm tracking-wide flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {loading ? "Signing in..." : "Sign in"}
+                {!loading && <ArrowRight className="h-4 w-4" />}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center text-sm text-slate-500 dark:text-slate-400">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="ml-1 text-blue-600 dark:text-blue-400 font-medium hover:underline">
+            <Link href="/register" className="ml-1 text-primary font-bold hover:underline">
               Create account
             </Link>
           </CardFooter>

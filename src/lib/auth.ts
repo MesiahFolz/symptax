@@ -64,11 +64,7 @@ export const authOptions: NextAuthOptions = {
 
         if (!isPasswordValid) return null;
 
-        // Block any non-super-admin who is not verified
-        if (!user.isVerified && user.role !== "SUPER_ADMIN") {
-          throw new Error("ACCOUNT_PENDING_VERIFICATION");
-        }
-
+        // All users can log in — verification unlocks additional features
         return {
           id: user.id,
           email: user.email,
