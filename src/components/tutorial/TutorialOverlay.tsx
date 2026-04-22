@@ -56,7 +56,6 @@ export const TutorialOverlay = () => {
       exitTutorial();
     } else {
       const nextData = currentSteps[step + 1];
-      // Only auto-navigate if the next step is on a different page
       if (nextData.path !== pathname) {
         router.push(nextData.path);
       }
@@ -64,65 +63,101 @@ export const TutorialOverlay = () => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden font-sans text-slate-900">
-      {/* Dim backdrop with hole for target */}
-      <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-[1px] transition-opacity duration-500" 
-           style={{ 
-             clipPath: targetRect 
-               ? `polygon(0% 0%, 0% 100%, ${targetRect.left - 4}px 100%, ${targetRect.left - 4}px ${targetRect.top - 4}px, ${targetRect.right + 4}px ${targetRect.top - 4}px, ${targetRect.right + 4}px ${targetRect.bottom + 4}px, ${targetRect.left - 4}px ${targetRect.bottom + 4}px, ${targetRect.left - 4}px 100%, 100% 100%, 100% 0%)`
-               : 'none' 
-           }} 
-      />
+  // Tooltip Positioning Logic
+  const getTooltipStyle = () => {
+    if (!targetRect) {
+      return {
+        left: "50%",
+        top: "50%",
+        transform: "translate(-50%, -50%)",
+      };
+    }
 
-      {/* Guide Box */}
+    // Try to place to the right if there's space, else below
+    const padding = 24;
+    const spaceOnRight = window.innerWidth - targetRect.right;
+    
+    if (spaceOnRight > 380) {
+      return {
+        left: targetRect.right + padding,
+        top: targetRect.top + (targetRect.height / 2),
+        transform: "translateY(-50%)",
+        arrow: "left",
+      };
+    } else {
+      return {
+        left: targetRect.left + (targetRect.width / 2),
+        top: targetRect.bottom + padding,
+        transform: "translateX(-50%)",
+        arrow: "top",
+      };
+    }
+  };
+
+  const style = getTooltipStyle();
+
+  return (
+    <div className="fixed inset-0 z-[9999] pointer-events-none overflow-visible font-sans text-slate-900">
+      {/* No more backdrop - users can see the whole page */}
+
       <AnimatePresence mode="wait">
         <motion.div
-          key={step}
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
+          key={`${step}-${phase}`}
+          initial={{ opacity: 0, scale: 0.9, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="absolute pointer-events-auto"
           style={{
-            left: targetRect ? Math.max(20, Math.min(window.innerWidth - 380, targetRect.left)) : "50%",
-            top: targetRect ? Math.min(window.innerHeight - 300, targetRect.bottom + 20) : "50%",
-            transform: targetRect ? "none" : "translate(-50%, -50%)",
+            left: style.left,
+            top: style.top,
+            transform: style.transform,
           }}
         >
-          <div className="w-[340px] bg-white dark:bg-slate-900 rounded-[2rem] border-2 border-primary/20 shadow-2xl overflow-hidden p-1">
-            <div className="bg-primary/5 dark:bg-primary/10 rounded-[1.8rem] p-6 space-y-4">
+          {/* Directional Arrow */}
+          {targetRect && (
+            <div 
+              className={`absolute w-4 h-4 bg-white dark:bg-slate-900 rotate-45 border-primary/20 -z-10
+                ${style.arrow === "left" ? "-left-2 top-1/2 -translate-y-1/2 border-l-2 border-b-2" : ""}
+                ${style.arrow === "top" ? "-top-2 left-1/2 -translate-x-1/2 border-l-2 border-t-2" : ""}
+              `}
+            />
+          )}
+
+          <div className="w-[320px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[1.5rem] border-2 border-primary/20 shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden p-1">
+            <div className="bg-primary/5 dark:bg-primary/10 rounded-[1.3rem] p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-primary">
-                  <div className="p-1.5 bg-primary/20 rounded-full">
-                    {canAdvance ? <CheckCircle2 className="h-4 w-4" /> : <Info className="h-4 w-4" />}
+                  <div className="p-1 bg-primary/20 rounded-full">
+                    {canAdvance ? <CheckCircle2 className="h-3 w-3" /> : <Info className="h-3 w-3" />}
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest">
-                    {phase === "ONBOARDING" ? "Onboarding" : "Account Tour"}
+                  <span className="text-[9px] font-black uppercase tracking-widest leading-none">
+                    {phase === "ONBOARDING" ? "Guide" : "Account Tip"}
                   </span>
                 </div>
                 <button 
                   onClick={exitTutorial}
                   className="p-1 hover:bg-red-500/10 rounded-full text-slate-400 hover:text-red-500 transition-colors"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="space-y-2">
-                <h3 className="text-xl font-black text-slate-900 dark:text-white leading-tight">
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight">
                   {currentStepData.title}
                 </h3>
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p className="text-[13px] font-medium text-slate-600 dark:text-slate-400 leading-snug">
                   {currentStepData.description}
                 </p>
               </div>
 
-              <div className="pt-2 flex items-center justify-between gap-4">
-                <div className="flex gap-1.5">
+              <div className="pt-1 flex items-center justify-between gap-4">
+                <div className="flex gap-1">
                   {currentSteps.map((_, i) => (
                     <div 
                       key={i} 
-                      className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? 'w-6 bg-primary' : 'w-1.5 bg-primary/20'}`} 
+                      className={`h-1 rounded-full transition-all duration-300 ${i === step ? 'w-4 bg-primary' : 'w-1 bg-primary/20'}`} 
                     />
                   ))}
                 </div>
@@ -130,44 +165,39 @@ export const TutorialOverlay = () => {
                 <Button 
                   onClick={handleNext}
                   disabled={!canAdvance}
-                  className={`font-black px-6 py-5 rounded-2xl transition-all flex items-center gap-2 group shadow-lg ${
+                  size="sm"
+                  className={`font-black px-4 py-4 rounded-xl transition-all flex items-center gap-1.5 group shadow-md text-xs ${
                     canAdvance 
                       ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20 hover:scale-105' 
-                      : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 grayscale cursor-not-allowed opacity-50'
+                      : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50'
                   }`}
                 >
-                  {step === currentSteps.length - 1 ? "FINISH" : "CONTINUE"}
-                  <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  {step === currentSteps.length - 1 ? "FINISH" : "NEXT"}
+                  <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </Button>
               </div>
             </div>
           </div>
-          
-          {/* Decorative tail for target element */}
-          {targetRect && (
-            <div 
-              className="absolute -top-3 left-10 w-6 h-6 bg-white dark:bg-slate-900 rotate-45 border-l-2 border-t-2 border-primary/20 -z-10"
-            />
-          )}
         </motion.div>
       </AnimatePresence>
 
-      {/* Pulsing highlight for target */}
+      {/* Target Highlight Ring (No backdrop, just a subtle glow) */}
       {targetRect && (
         <motion.div
-          initial={{ opacity: 0 }}
+          key={`ring-${step}`}
+          initial={{ opacity: 0, scale: 0.8 }}
           animate={{ 
-            opacity: [0.4, 0.8, 0.4],
-            scale: [1, 1.05, 1],
+            opacity: [0.3, 0.6, 0.3],
+            scale: [1, 1.02, 1],
           }}
           transition={{ repeat: Infinity, duration: 2 }}
-          className="absolute border-4 border-primary rounded-2xl pointer-events-none"
+          className="absolute border-[3px] border-primary rounded-xl pointer-events-none z-[9998]"
           style={{
-            left: targetRect.left - 8,
-            top: targetRect.top - 8,
-            width: targetRect.width + 16,
-            height: targetRect.height + 16,
-            boxShadow: "0 0 40px oklch(0.45 0.15 180 / 40%)",
+            left: targetRect.left - 6,
+            top: targetRect.top - 6,
+            width: targetRect.width + 12,
+            height: targetRect.height + 12,
+            boxShadow: "0 0 30px oklch(0.45 0.15 180 / 30%)",
           }}
         />
       )}
