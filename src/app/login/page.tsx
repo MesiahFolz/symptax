@@ -15,24 +15,28 @@ import { TUTORIAL_STEPS } from "@/lib/tutorialConfig";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isActive, role: tutorialRole, step } = useTutorial();
+  const { isActive, role: tutorialRole, step, reportTaskComplete } = useTutorial();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Tutorial Auto-fill Logic
+  // Tutorial Task Detection Logic
   useEffect(() => {
-    if (isActive && tutorialRole) {
-      const currentStepData = TUTORIAL_STEPS[tutorialRole][step];
-      if (currentStepData?.autoFill) {
-        const data = currentStepData.autoFill;
-        if (data.email) setEmail(data.email);
-        if (data.password) setPassword(data.password);
-      }
+    if (!isActive || !tutorialRole) return;
+
+    const currentSteps = TUTORIAL_STEPS[tutorialRole] || [];
+    const currentStep = currentSteps[step];
+    if (!currentStep?.requirement) return;
+
+    const { type, targetId } = currentStep.requirement;
+
+    if (type === "input") {
+      if (targetId === "email" && email.includes("@")) reportTaskComplete();
+      if (targetId === "password" && password.length > 5) reportTaskComplete();
     }
-  }, [isActive, tutorialRole, step]);
+  }, [isActive, tutorialRole, step, email, password]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

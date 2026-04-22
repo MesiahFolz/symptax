@@ -37,11 +37,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <X className="h-6 w-6" />
             </button>
           </div>
-          
-          <div className="nav-prompt">
-            <span className="bg-white/50 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-border">ALT + H</span>
-            <span>Jump to home</span>
-          </div>
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">

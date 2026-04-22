@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTutorial } from "./TutorialContext";
 import { TUTORIAL_STEPS } from "@/lib/tutorialConfig";
 import { Button } from "@/components/ui/button";
-import { X, ChevronRight, ChevronLeft, Info } from "lucide-react";
+import { X, ChevronRight, Info, CheckCircle2 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 
 export const TutorialOverlay = () => {
-  const { isActive, role, step, nextStep, exitTutorial } = useTutorial();
+  const { isActive, role, step, nextStep, exitTutorial, canAdvance } = useTutorial();
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -38,25 +38,22 @@ export const TutorialOverlay = () => {
       requestRef.current = requestAnimationFrame(updateTarget);
     }
     return () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      if (requestRef.current && typeof window !== "undefined") {
+        cancelAnimationFrame(requestRef.current);
+      }
     };
   }, [isActive, currentStepData]);
-
-  // Handle path transitions
-  useEffect(() => {
-    if (isActive && currentStepData && currentStepData.path !== pathname) {
-      // If we are on the wrong page for this step, we might need to wait for navigation
-      // or indicate to the user to click something.
-    }
-  }, [isActive, currentStepData, pathname]);
 
   if (!isActive || !currentStepData) return null;
 
   const handleNext = () => {
+    if (!canAdvance) return;
+
     if (step === currentSteps.length - 1) {
       exitTutorial();
     } else {
       const nextData = currentSteps[step + 1];
+      // Only auto-navigate if the next step is on a different page
       if (nextData.path !== pathname) {
         router.push(nextData.path);
       }
@@ -65,7 +62,7 @@ export const TutorialOverlay = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden font-sans">
+    <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden font-sans text-slate-900">
       {/* Dim backdrop with hole for target */}
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity duration-500" 
            style={{ 
@@ -94,9 +91,9 @@ export const TutorialOverlay = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-primary">
                   <div className="p-1.5 bg-primary/20 rounded-full">
-                    <Info className="h-4 w-4" />
+                    {canAdvance ? <CheckCircle2 className="h-4 w-4" /> : <Info className="h-4 w-4" />}
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest">Tutorial Guide</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">{canAdvance ? 'Task Ready' : 'Task Pending'}</span>
                 </div>
                 <button 
                   onClick={exitTutorial}
@@ -127,7 +124,12 @@ export const TutorialOverlay = () => {
                 
                 <Button 
                   onClick={handleNext}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-black px-6 py-5 rounded-2xl shadow-lg shadow-primary/20 transition-transform active:scale-95 flex items-center gap-2 group"
+                  disabled={!canAdvance}
+                  className={`font-black px-6 py-5 rounded-2xl transition-all flex items-center gap-2 group shadow-lg ${
+                    canAdvance 
+                      ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20 hover:scale-105' 
+                      : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 grayscale cursor-not-allowed opacity-50'
+                  }`}
                 >
                   {step === currentSteps.length - 1 ? "FINISH" : "CONTINUE"}
                   <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />

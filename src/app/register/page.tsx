@@ -15,7 +15,7 @@ import { TUTORIAL_STEPS } from "@/lib/tutorialConfig";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { isActive, role: tutorialRole, step } = useTutorial();
+  const { isActive, role: tutorialRole, step, reportTaskComplete } = useTutorial();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,26 +33,22 @@ export default function RegisterPage() {
   const [branchName, setBranchName] = useState("");
   const [branchAddress, setBranchAddress] = useState("");
 
-  // Tutorial Auto-fill Logic
+  // Tutorial Task Detection Logic
   useEffect(() => {
-    if (isActive && tutorialRole) {
-      const currentStepData = TUTORIAL_STEPS[tutorialRole][step];
-      if (currentStepData?.autoFill) {
-        const data = currentStepData.autoFill;
-        if (data.name) setName(data.name);
-        if (data.email) setEmail(data.email);
-        if (data.password) setPassword(data.password);
-        if (data.role) setRole(data.role);
-        if (data.hospitalName) setHospitalName(data.hospitalName);
-        if (data.branchName) setBranchName(data.branchName);
-        if (data.branchAddress) setBranchAddress(data.branchAddress);
-        
-        // Mock files for tutorial
-        setProfileImage("https://ui-avatars.com/api/?name=Tutorial+User&background=0D8ABC&color=fff");
-        setVerificationDoc("https://placehold.co/600x400/000000/FFFFFF/png?text=MOCK+ID+CARD");
-      }
+    if (!isActive || !tutorialRole) return;
+
+    const currentSteps = TUTORIAL_STEPS[tutorialRole] || [];
+    const currentStep = currentSteps[step];
+    if (!currentStep?.requirement) return;
+
+    const { type, targetId } = currentStep.requirement;
+
+    if (type === "input") {
+      if (targetId === "name" && name.length > 2) reportTaskComplete();
+      if (targetId === "email" && email.includes("@")) reportTaskComplete();
+      if (targetId === "password" && password.length > 5) reportTaskComplete();
     }
-  }, [isActive, tutorialRole, step]);
+  }, [isActive, tutorialRole, step, name, email, password]);
 
   const getSupabase = () => {
     return createClient(
@@ -293,6 +289,7 @@ export default function RegisterPage() {
                   <div className="space-y-2">
                     <Label className="dark:text-slate-300 text-xs">Hospital Name</Label>
                     <Input
+                      id="hospitalName"
                       placeholder="e.g. Genesis Medical"
                       value={hospitalName}
                       onChange={(e) => setHospitalName(e.target.value)}
@@ -302,6 +299,7 @@ export default function RegisterPage() {
                   <div className="space-y-2">
                     <Label className="dark:text-slate-300 text-xs">Branch Name</Label>
                     <Input
+                      id="branchName"
                       placeholder="e.g. North Wing"
                       value={branchName}
                       onChange={(e) => setBranchName(e.target.value)}
@@ -311,6 +309,7 @@ export default function RegisterPage() {
                   <div className="space-y-2">
                     <Label className="dark:text-slate-300 text-xs">Branch Address</Label>
                     <Input
+                      id="branchAddress"
                       placeholder="Street, City"
                       value={branchAddress}
                       onChange={(e) => setBranchAddress(e.target.value)}
@@ -319,7 +318,7 @@ export default function RegisterPage() {
                   </div>
                 </div>
               )}
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11" disabled={loading || uploading}>
+              <Button type="submit" id="register-submit-btn" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11" disabled={loading || uploading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 {loading ? "Registering Account..." : "Submit for Verification"}
               </Button>
