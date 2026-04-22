@@ -67,10 +67,10 @@ export const TutorialOverlay = () => {
   return (
     <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden font-sans text-slate-900">
       {/* Dim backdrop with hole for target */}
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity duration-500" 
+      <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-[1px] transition-opacity duration-500" 
            style={{ 
              clipPath: targetRect 
-               ? `polygon(0% 0%, 0% 100%, ${targetRect.left}px 100%, ${targetRect.left}px ${targetRect.top}px, ${targetRect.right}px ${targetRect.top}px, ${targetRect.right}px ${targetRect.bottom}px, ${targetRect.left}px ${targetRect.bottom}px, ${targetRect.left}px 100%, 100% 100%, 100% 0%)`
+               ? `polygon(0% 0%, 0% 100%, ${targetRect.left - 4}px 100%, ${targetRect.left - 4}px ${targetRect.top - 4}px, ${targetRect.right + 4}px ${targetRect.top - 4}px, ${targetRect.right + 4}px ${targetRect.bottom + 4}px, ${targetRect.left - 4}px ${targetRect.bottom + 4}px, ${targetRect.left - 4}px 100%, 100% 100%, 100% 0%)`
                : 'none' 
            }} 
       />
