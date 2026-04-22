@@ -43,7 +43,8 @@ export async function POST(req: Request) {
         bloodType: data.bloodType,
         gender: data.gender,
         dob: data.dob ? new Date(data.dob) : null,
-        address: data.address
+        address: data.address,
+        profileImage: data.profileImage
       },
       create: {
         userId,
@@ -52,7 +53,8 @@ export async function POST(req: Request) {
         bloodType: data.bloodType,
         gender: data.gender,
         dob: data.dob ? new Date(data.dob) : null,
-        address: data.address
+        address: data.address,
+        profileImage: data.profileImage
       }
     });
 

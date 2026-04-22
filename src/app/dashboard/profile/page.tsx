@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,9 @@ export default function ProfilePage() {
    const [loading, setLoading] = useState(false);
    const [fetching, setFetching] = useState(true);
    const [uploading, setUploading] = useState(false);
+   const [profileUploading, setProfileUploading] = useState(false);
    const [files, setFiles] = useState<any[]>([]);
+   const profileInputRef = useRef<HTMLInputElement>(null);
 
    // Verification state
    const [verifyLoading, setVerifyLoading] = useState(false);
@@ -120,6 +122,49 @@ export default function ProfilePage() {
          });
       } finally {
          setUploading(false);
+      }
+   };
+
+   const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setProfileUploading(true);
+      try {
+         const supabase = getSupabase();
+         const fileExt = file.name.split(".").pop();
+         const fileName = `profile-${Date.now()}.${fileExt}`;
+         const filePath = `profiles/${session?.user?.id}/${fileName}`;
+
+         const { error } = await supabase.storage
+            .from("medical-files")
+            .upload(filePath, file);
+
+         if (error) throw error;
+
+         const { data: { publicUrl } } = supabase.storage
+            .from("medical-files")
+            .getPublicUrl(filePath);
+
+         // Update profile in DB
+         const res = await fetch("/api/profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...formData, profileImage: publicUrl }),
+         });
+
+         if (res.ok) {
+            toast.success("Profile picture updated!");
+            await update(); // Refresh session to show new image everywhere
+         } else {
+            throw new Error("Failed to update database");
+         }
+      } catch (err) {
+         toast.error("Profile photo update failed", {
+            description: "Please try again.",
+         });
+      } finally {
+         setProfileUploading(false);
       }
    };
 
@@ -370,8 +415,20 @@ export default function ProfilePage() {
                               <User className="h-16 w-16 text-slate-300" />
                            </div>
                         )}
-                        <button type="button" className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground p-2 rounded-xl shadow-lg border-2 border-white dark:border-slate-900">
-                           <Camera className="h-4 w-4" />
+                        <input
+                           type="file"
+                           ref={profileInputRef}
+                           className="hidden"
+                           accept="image/*"
+                           onChange={handleProfileImageUpload}
+                        />
+                        <button 
+                           type="button" 
+                           onClick={() => profileInputRef.current?.click()}
+                           disabled={profileUploading}
+                           className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground p-2 rounded-xl shadow-lg border-2 border-white dark:border-slate-900 hover:scale-110 transition-transform active:scale-95 disabled:opacity-50"
+                        >
+                           {profileUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
                         </button>
                      </div>
                      <h3 className="font-bold text-lg">{session?.user?.name}</h3>
