@@ -29,8 +29,12 @@ export default function LoginScreen() {
 
   useEffect(() => {
     getToken().then((token) => {
-      if (token) router.replace("/(tabs)");
-      else setChecking(false);
+      if (token) {
+        // Small delay to ensure root layout is mounted
+        setTimeout(() => router.replace("/(tabs)"), 10);
+      } else {
+        setChecking(false);
+      }
     });
   }, []);
 
