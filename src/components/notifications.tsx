@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export function NotificationsBell() {
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -40,6 +41,7 @@ export function NotificationsBell() {
         body: JSON.stringify({}),
       });
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+      toast.success("All notifications marked as read");
     } catch (e) { console.error(e); }
   };
 

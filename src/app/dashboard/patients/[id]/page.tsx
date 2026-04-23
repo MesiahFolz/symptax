@@ -8,6 +8,7 @@ import { UserCircle, Plus, AlertTriangle, History, Bell, Loader2, ImagePlus, X }
 import { createClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export default function PatientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { data: session } = useSession();
@@ -91,6 +92,9 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         }),
       });
       fetchRecords(patientId);
+      toast.success("Medical record committed!", {
+        description: `New ${type.toLowerCase()} has been added to history.`
+      });
       setTitle("");
       setContent("");
       setPushMessage("");
@@ -113,8 +117,10 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         body: JSON.stringify({ userId: patientId, message: notificationMsg }),
       });
       setNotificationMsg("");
-      alert("Notification sent to patient!");
-    } catch(e) { console.error(e) }
+      toast.success("Notification sent to patient!");
+    } catch(e) { 
+      toast.error("Failed to send notification");
+    }
     finally { setSubmitting(false) }
   };
 
