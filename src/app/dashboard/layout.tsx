@@ -69,6 +69,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Pill className="h-5 w-5 text-emerald-500" />
             Medication Ledger
           </Link>
+          <Link href="/dashboard/medicines" onClick={closeMenu} className={navLinkClass("/dashboard/medicines")}>
+            <Pill className="h-5 w-5 text-rose-500" />
+            Medicine Library
+          </Link>
           <Link href="/dashboard/ai-chat" onClick={closeMenu} className={navLinkClass("/dashboard/ai-chat")}>
             <Bot className="h-5 w-5 text-purple-500" />
             Health Bot
