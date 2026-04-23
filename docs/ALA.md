@@ -1,8 +1,7 @@
 # SympTax: Advanced Ledger & Analytics (ALA)
 
 ## System Architecture Hierarchy (Branching Format)
-
-```mermaid
+  
 graph TD
     %% Global Level
     Platform["SympTax Global Nexus (Super Admin)"] --> Hospitals["Hospital Networks (Provisioning)"]
