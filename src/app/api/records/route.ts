@@ -65,9 +65,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { title, content, type, patientId, isPinned, requiresAction, tags, imageUrl } = await req.json();
+    const { title, content, type, patientId, isPinned, requiresAction, tags, imageUrl, pushMessage } = await req.json();
 
-    if (!title || !patientId || !type) {
+    if (!title || !patientId || !type || !pushMessage) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
@@ -82,6 +82,15 @@ export async function POST(req: Request) {
         tags,
         fileUrl: imageUrl || null,
       },
+    });
+
+    // Create Push Notification
+    await prisma.notification.create({
+      data: {
+        userId: patientId,
+        message: pushMessage,
+        recordId: record.id
+      }
     });
 
     return NextResponse.json({ record }, { status: 201 });

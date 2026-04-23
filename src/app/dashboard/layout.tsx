@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, LayoutDashboard, FileText, MessageSquare, Bot, Lightbulb, Users, Menu, X, User, Share2, ShieldCheck, Pill, Building2, Lock } from "lucide-react";
+import { LogOut, LayoutDashboard, FileText, MessageSquare, Bot, Lightbulb, Users, Menu, X, User, Share2, ShieldCheck, Pill, Building2, Lock, Megaphone } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { toast } from "sonner";
@@ -86,6 +86,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {isVerified ? (
             <>
+              <Link href="/dashboard/announcements" onClick={closeMenu} className={navLinkClass("/dashboard/announcements")}>
+                <Megaphone className="h-5 w-5 text-emerald-500" />
+                Doctor Announcements
+              </Link>
               <Link href="/dashboard/insights" onClick={closeMenu} className={navLinkClass("/dashboard/insights")}>
                 <Lightbulb className="h-5 w-5 text-yellow-500" />
                 Health Insights

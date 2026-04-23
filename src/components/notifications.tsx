@@ -21,6 +21,28 @@ export function NotificationsBell() {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
+  const markAsRead = async (id: string) => {
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (e) { console.error(e); }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+    } catch (e) { console.error(e); }
+  };
+
   return (
     <div className="relative">
       <Button 
@@ -50,7 +72,16 @@ export function NotificationsBell() {
               </div>
             ) : (
               notifications.map((n) => (
-                <div key={n.id} className={`p-4 border-b border-slate-50 dark:border-slate-800/50 text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer ${!n.isRead ? 'bg-blue-50/40 dark:bg-blue-900/10' : ''}`}>
+                <div 
+                  key={n.id} 
+                  onClick={() => {
+                    markAsRead(n.id);
+                    if (n.recordId) {
+                      window.location.href = `/dashboard/announcements?recordId=${n.recordId}`;
+                    }
+                  }}
+                  className={`p-4 border-b border-slate-50 dark:border-slate-800/50 text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer ${!n.isRead ? 'bg-blue-50/40 dark:bg-blue-900/10' : ''}`}
+                >
                   <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-medium">{n.message}</p>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 flex items-center gap-1.5 uppercase font-semibold">
                     <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
@@ -62,7 +93,12 @@ export function NotificationsBell() {
           </div>
           {notifications.length > 0 && (
             <div className="p-3 bg-slate-50 dark:bg-slate-800/20 text-center">
-               <button className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline uppercase tracking-tight">Mark all as read</button>
+               <button 
+                 onClick={markAllAsRead}
+                 className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline uppercase tracking-tight"
+               >
+                 Mark all as read
+               </button>
             </div>
           )}
         </div>

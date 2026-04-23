@@ -26,6 +26,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const [notificationMsg, setNotificationMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  const [pushMessage, setPushMessage] = useState("");
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -78,11 +79,21 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       await fetch("/api/records", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patientId, title, content, type, isPinned, requiresAction, imageUrl }),
+        body: JSON.stringify({ 
+          patientId, 
+          title, 
+          content, 
+          type, 
+          isPinned, 
+          requiresAction, 
+          imageUrl,
+          pushMessage 
+        }),
       });
       fetchRecords(patientId);
       setTitle("");
       setContent("");
+      setPushMessage("");
       setIsPinned(false);
       setRequiresAction(false);
       setImageUrl("");
@@ -167,6 +178,19 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                      placeholder="Enter symptoms, dosage, or specific home care instructions..."
                    />
                 </div>
+
+                <div className="space-y-2">
+                   <Label className="dark:text-slate-300 font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+                     <Bell className="h-3 w-3 text-emerald-500" /> Push Notification Message (Required)
+                   </Label>
+                   <Input 
+                     required 
+                     value={pushMessage} 
+                     onChange={(e) => setPushMessage(e.target.value)} 
+                     placeholder="e.g. You have a new clinical instruction from Dr. Smith" 
+                     className="h-11 rounded-xl bg-emerald-50/30 dark:bg-emerald-900/5 border-emerald-100 dark:border-emerald-800/50 dark:text-white"
+                   />
+                </div>
                 
 
                 {/* Image Attachment */}
@@ -202,28 +226,8 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 </div>
                 
                 <Button type="submit" disabled={submitting} className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20">
-                  {submitting ? "Processing..." : "Commit Record"}
+                  {submitting ? "Processing..." : "Commit & Send Announcement"}
                 </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-xl dark:bg-slate-900 overflow-hidden">
-            <div className="h-2 bg-emerald-500" />
-            <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800 p-6 flex flex-row items-center gap-3 bg-emerald-50/30 dark:bg-emerald-900/10">
-              <Bell className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-              <CardTitle className="text-xl font-bold dark:text-white">Direct Push Notification</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 p-6">
-              <form onSubmit={handleSendNotification} className="flex flex-col sm:flex-row gap-3">
-                 <Input 
-                   required
-                   value={notificationMsg} 
-                   onChange={(e) => setNotificationMsg(e.target.value)} 
-                   placeholder="Short urgent message to patient..." 
-                   className="h-11 rounded-xl bg-white dark:bg-slate-950 dark:border-slate-800 dark:text-white flex-1"
-                 />
-                 <Button type="submit" disabled={submitting} className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 rounded-xl">Send</Button>
               </form>
             </CardContent>
           </Card>

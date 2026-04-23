@@ -49,3 +49,33 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
+
+// PATCH to mark notifications as read
+export async function PATCH(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    const userId = (session.user as any).id;
+    const { id } = await req.json();
+
+    if (id) {
+      // Mark specific notification as read
+      await prisma.notification.update({
+        where: { id, userId },
+        data: { isRead: true },
+      });
+    } else {
+      // Mark all as read
+      await prisma.notification.updateMany({
+        where: { userId },
+        data: { isRead: true },
+      });
+    }
+
+    return NextResponse.json({ message: "Success" }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+  }
+}
