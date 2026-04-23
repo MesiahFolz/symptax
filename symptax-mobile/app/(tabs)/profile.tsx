@@ -10,6 +10,7 @@ import * as ImagePicker from "expo-image-picker";
 import { getUser, getToken, clearAuth, AuthUser } from "@/lib/auth";
 import { apiRequest } from "@/lib/api";
 import { useTheme } from "@/lib/theme";
+import { useToast } from "@/lib/Toast";
 import { getGuestProfile, saveGuestProfile, GuestProfile, DEFAULT_GUEST } from "@/lib/storage";
 
 const INFO_ITEMS = [
@@ -21,6 +22,7 @@ const INFO_ITEMS = [
 
 export default function ProfileScreen() {
   const { colors, isDark, setMode } = useTheme();
+  const { showToast } = useToast();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [guestData, setGuestData] = useState<GuestProfile>(DEFAULT_GUEST);
@@ -76,6 +78,7 @@ export default function ProfileScreen() {
 
     if (!result.canceled) {
       setGuestData({ ...guestData, image: result.assets[0].uri });
+      showToast("Photo selected!");
     }
   };
 
@@ -84,7 +87,7 @@ export default function ProfileScreen() {
     await saveGuestProfile(guestData);
     setSaving(false);
     setEditing(false);
-    Alert.alert("✅ Saved", "Your guest profile has been updated locally.");
+    showToast("Profile saved locally");
   };
 
   const getRoleLabel = (role: string) => {
@@ -147,7 +150,7 @@ export default function ProfileScreen() {
             <TextInput
               style={s.nameInput}
               value={guestData.name}
-              onChangeText={(v) => setGuestData({ ...guestData, name: v })}
+              onChangeText={(v: string) => setGuestData({ ...guestData, name: v })}
               placeholder="Your Name"
               placeholderTextColor={colors.textMuted}
             />
@@ -201,7 +204,7 @@ export default function ProfileScreen() {
                     <TextInput
                       style={s.infoInput}
                       value={(guestData as any)[item.key]}
-                      onChangeText={(v) => setGuestData({ ...guestData, [item.key]: v })}
+                      onChangeText={(v: string) => setGuestData({ ...guestData, [item.key]: v })}
                       placeholder="..."
                       placeholderTextColor={colors.textMuted}
                     />
@@ -225,7 +228,7 @@ export default function ProfileScreen() {
                   <TextInput
                     style={s.infoInput}
                     value={guestData.emergencyContact}
-                    onChangeText={(v) => setGuestData({ ...guestData, emergencyContact: v })}
+                    onChangeText={(v: string) => setGuestData({ ...guestData, emergencyContact: v })}
                     placeholder="Name"
                   />
                 ) : (
@@ -238,7 +241,7 @@ export default function ProfileScreen() {
                   <TextInput
                     style={s.infoInput}
                     value={guestData.emergencyPhone}
-                    onChangeText={(v) => setGuestData({ ...guestData, emergencyPhone: v })}
+                    onChangeText={(v: string) => setGuestData({ ...guestData, emergencyPhone: v })}
                     placeholder="Phone"
                     keyboardType="phone-pad"
                   />

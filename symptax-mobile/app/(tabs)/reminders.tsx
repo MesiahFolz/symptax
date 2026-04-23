@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   View, Text, StyleSheet, Switch, TouchableOpacity,
-  ScrollView, ActivityIndicator, Alert,
+  ScrollView, ActivityIndicator, Alert, TextInput, Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/lib/theme";
+import { useToast } from "@/lib/Toast";
 import {
   getReminderSettings, saveReminderSettings,
   ReminderSettings, DEFAULT_REMINDERS,
@@ -15,19 +16,15 @@ import {
   requestLocalNotificationPermission,
 } from "@/lib/reminders";
 
-const TIME_OPTIONS = [
-  "06:00", "07:00", "08:00", "09:00", "10:00", "12:00",
-  "14:00", "16:00", "18:00", "20:00", "21:00", "22:00",
-];
-
 const BEDTIME_OPTIONS = ["20:00", "21:00", "21:30", "22:00", "22:30", "23:00"];
 
 export default function RemindersScreen() {
   const { colors } = useTheme();
+  const { showToast } = useToast();
   const [settings, setSettings] = useState<ReminderSettings>(DEFAULT_REMINDERS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showMedTimes, setShowMedTimes] = useState(false);
+  const [newMedTime, setNewMedTime] = useState("");
 
   useEffect(() => {
     getReminderSettings().then((s) => { setSettings(s); setLoading(false); });
@@ -35,16 +32,22 @@ export default function RemindersScreen() {
 
   const save = useCallback(async (s: ReminderSettings) => {
     setSaving(true);
-    const granted = await requestLocalNotificationPermission();
-    if (!granted) {
-      Alert.alert("Permission Required", "Please allow notifications in your device settings to use Smart Reminders.");
+    try {
+      const granted = await requestLocalNotificationPermission();
+      if (!granted) {
+        Alert.alert("Permission Required", "Please allow notifications in your device settings to use Smart Reminders.");
+        setSaving(false);
+        return;
+      }
+      await saveReminderSettings(s);
+      await scheduleReminders(s);
+      showToast("Reminders updated!");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to schedule", "error");
+    } finally {
       setSaving(false);
-      return;
     }
-    await saveReminderSettings(s);
-    await scheduleReminders(s);
-    setSaving(false);
-    Alert.alert("✅ Saved", "Your reminders have been updated!");
   }, []);
 
   const toggle = (key: keyof ReminderSettings, val: boolean) => {
@@ -52,10 +55,27 @@ export default function RemindersScreen() {
     setSettings(next);
   };
 
-  const toggleMedTime = (time: string) => {
-    const curr = settings.medication.times;
-    const next = curr.includes(time) ? curr.filter((t) => t !== time) : [...curr, time];
-    setSettings({ ...settings, medication: { ...settings.medication, times: next } });
+  const addMedTime = () => {
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(newMedTime)) {
+      showToast("Use HH:MM format", "error");
+      return;
+    }
+    if (settings.medication.times.includes(newMedTime)) {
+      showToast("Time already exists", "info");
+      return;
+    }
+    const nextTimes = [...settings.medication.times, newMedTime].sort();
+    setSettings({ ...settings, medication: { ...settings.medication, times: nextTimes } });
+    setNewMedTime("");
+    Keyboard.dismiss();
+    showToast("Time added!");
+  };
+
+  const removeMedTime = (time: string) => {
+    const nextTimes = settings.medication.times.filter((t) => t !== time);
+    setSettings({ ...settings, medication: { ...settings.medication, times: nextTimes } });
+    showToast("Time removed");
   };
 
   const setBedtime = (time: string) => {
@@ -67,10 +87,16 @@ export default function RemindersScreen() {
       { text: "Cancel", style: "cancel" },
       {
         text: "Clear All", style: "destructive", onPress: async () => {
-          const reset = DEFAULT_REMINDERS;
-          await saveReminderSettings(reset);
-          await cancelAllReminders();
-          setSettings(reset);
+          setSaving(true);
+          try {
+            const reset = DEFAULT_REMINDERS;
+            await saveReminderSettings(reset);
+            await cancelAllReminders();
+            setSettings(reset);
+            Alert.alert("Done", "All reminders cleared.");
+          } finally {
+            setSaving(false);
+          }
         }
       },
     ]);
@@ -86,7 +112,7 @@ export default function RemindersScreen() {
       icon: "medkit" as const,
       color: "#6366f1",
       title: "Medication Alerts",
-      desc: "Daily reminders to take your medicine on time",
+      desc: "Set custom times for your medicines",
     },
     {
       key: "hydration" as const,
@@ -107,25 +133,23 @@ export default function RemindersScreen() {
       icon: "moon" as const,
       color: "#8b5cf6",
       title: "Bedtime Wind-Down",
-      desc: "Evening alert to start relaxing for sleep",
+      desc: "Evening alert to start relaxing",
     },
   ];
 
   return (
     <SafeAreaView style={s.safe}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
-        {/* Header */}
         <View style={s.header}>
           <View>
             <Text style={s.title}>Smart Reminders</Text>
-            <Text style={s.subtitle}>All reminders work offline — no internet needed</Text>
+            <Text style={s.subtitle}>Works offline — stays on your device</Text>
           </View>
           <TouchableOpacity onPress={clearAll} style={s.clearBtn}>
             <Ionicons name="trash-outline" size={18} color={colors.danger} />
           </TouchableOpacity>
         </View>
 
-        {/* Reminder cards */}
         {REMINDERS.map((r) => {
           const enabled = (settings[r.key] as any).enabled;
           return (
@@ -146,40 +170,36 @@ export default function RemindersScreen() {
                 />
               </View>
 
-              {/* Medication time picker */}
               {r.key === "medication" && enabled && (
                 <View style={s.subSection}>
-                  <TouchableOpacity
-                    onPress={() => setShowMedTimes(!showMedTimes)}
-                    style={s.subToggle}
-                  >
-                    <Text style={[s.subLabel, { color: r.color }]}>
-                      {settings.medication.times.length > 0
-                        ? `Times: ${settings.medication.times.join(", ")}`
-                        : "Tap to set times"}
-                    </Text>
-                    <Ionicons name={showMedTimes ? "chevron-up" : "chevron-down"} size={14} color={r.color} />
-                  </TouchableOpacity>
-                  {showMedTimes && (
-                    <View style={s.timeGrid}>
-                      {TIME_OPTIONS.map((t) => {
-                        const sel = settings.medication.times.includes(t);
-                        return (
-                          <TouchableOpacity
-                            key={t}
-                            style={[s.timeChip, sel && { backgroundColor: r.color }]}
-                            onPress={() => toggleMedTime(t)}
-                          >
-                            <Text style={[s.timeChipText, sel && { color: "#fff" }]}>{t}</Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  )}
+                  <Text style={s.subLabel}>Scheduled Times:</Text>
+                  <View style={s.timeGrid}>
+                    {settings.medication.times.map((t: string) => (
+                      <View key={t} style={[s.timeChip, { backgroundColor: r.color }]}>
+                        <Text style={s.timeChipTextActive}>{t}</Text>
+                        <TouchableOpacity onPress={() => removeMedTime(t)} style={s.chipDelete}>
+                          <Ionicons name="close-circle" size={14} color="#fff" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                  <View style={s.addTimeRow}>
+                    <TextInput
+                      style={s.addInput}
+                      placeholder="HH:MM (e.g. 09:00)"
+                      placeholderTextColor={colors.textMuted}
+                      value={newMedTime}
+                      onChangeText={setNewMedTime}
+                      keyboardType="numbers-and-punctuation"
+                      maxLength={5}
+                    />
+                    <TouchableOpacity style={[s.addBtn, { backgroundColor: r.color }]} onPress={addMedTime}>
+                      <Ionicons name="add" size={24} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
 
-              {/* Bedtime time picker */}
               {r.key === "bedtime" && enabled && (
                 <View style={s.subSection}>
                   <Text style={s.subLabel}>Wind-down time:</Text>
@@ -189,7 +209,7 @@ export default function RemindersScreen() {
                       return (
                         <TouchableOpacity
                           key={t}
-                          style={[s.timeChip, sel && { backgroundColor: r.color }]}
+                          style={[s.timeChip, sel ? { backgroundColor: r.color } : { borderColor: colors.border, borderWidth: 1 }]}
                           onPress={() => setBedtime(t)}
                         >
                           <Text style={[s.timeChipText, sel && { color: "#fff" }]}>{t}</Text>
@@ -203,17 +223,15 @@ export default function RemindersScreen() {
           );
         })}
 
-        {/* Info box */}
         <View style={s.infoBox}>
-          <Ionicons name="wifi-outline" size={16} color={colors.accent} />
+          <Ionicons name="notifications-outline" size={16} color={colors.accent} />
           <Text style={s.infoText}>
-            Smart Reminders use local notifications — they work even with no internet connection.
+            Notifications will trigger even if the app is closed or offline.
           </Text>
         </View>
 
-        {/* Save button */}
         <TouchableOpacity style={[s.saveBtn, saving && { opacity: 0.6 }]} onPress={() => save(settings)} disabled={saving}>
-          {saving ? <ActivityIndicator color="#fff" /> : <Text style={s.saveBtnText}>Save & Activate Reminders</Text>}
+          {saving ? <ActivityIndicator color="#fff" /> : <Text style={s.saveBtnText}>Activate All Reminders</Text>}
         </TouchableOpacity>
 
         <View style={{ height: 32 }} />
@@ -238,13 +256,17 @@ function makeStyles(colors: ReturnType<typeof import("@/lib/theme").useTheme>["c
     cardTitle: { fontSize: 15, fontWeight: "800", color: colors.text },
     cardDesc: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
     subSection: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: colors.border },
-    subToggle: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
     subLabel: { fontSize: 12, fontWeight: "700", color: colors.textSecondary, marginBottom: 10 },
-    timeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-    timeChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.cardAlt },
+    timeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 12 },
+    timeChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, flexDirection: "row", alignItems: "center", gap: 6 },
     timeChipText: { fontSize: 12, fontWeight: "700", color: colors.textSecondary },
-    infoBox: { flexDirection: "row", gap: 10, alignItems: "flex-start", backgroundColor: colors.accentLight, borderRadius: 14, padding: 14, marginBottom: 20, borderWidth: 1, borderColor: colors.accent + "30" },
-    infoText: { fontSize: 12, color: colors.accent, flex: 1, lineHeight: 18, fontWeight: "600" },
+    timeChipTextActive: { fontSize: 12, fontWeight: "800", color: "#fff" },
+    chipDelete: { padding: 2 },
+    addTimeRow: { flexDirection: "row", gap: 10, alignItems: "center", marginTop: 4 },
+    addInput: { flex: 1, backgroundColor: colors.inputBg, borderRadius: 12, paddingHorizontal: 16, height: 44, color: colors.text, fontWeight: "600", borderWidth: 1, borderColor: colors.border },
+    addBtn: { width: 44, height: 44, borderRadius: 12, justifyContent: "center", alignItems: "center" },
+    infoBox: { flexDirection: "row", gap: 10, alignItems: "center", backgroundColor: colors.accentLight, borderRadius: 14, padding: 14, marginBottom: 20 },
+    infoText: { fontSize: 12, color: colors.accent, flex: 1, fontWeight: "600" },
     saveBtn: { backgroundColor: colors.accent, borderRadius: 16, height: 54, justifyContent: "center", alignItems: "center", shadowColor: colors.accent, shadowOpacity: 0.35, shadowRadius: 12, elevation: 5 },
     saveBtnText: { color: "#fff", fontSize: 16, fontWeight: "800" },
   });

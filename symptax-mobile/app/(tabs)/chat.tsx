@@ -1,145 +1,170 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
-  View, Text, TextInput, TouchableOpacity, FlatList,
-  StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform,
+  View, Text, ScrollView, TextInput, TouchableOpacity,
+  StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { getToken } from "@/lib/auth";
-import { apiRequest } from "@/lib/api";
 import { useTheme } from "@/lib/theme";
 
-interface Message {
+type Message = {
   id: string;
-  role: "user" | "bot";
-  content: string;
-}
+  text: string;
+  sender: "user" | "bot";
+  timestamp: Date;
+};
+
+const KEYWORD_RESPONSES: Record<string, string> = {
+  "hello": "Hello! I am your SympTax Health Assistant. How can I help you today?",
+  "hi": "Hi there! Feel free to ask me any health-related questions.",
+  "headache": "For headaches, ensure you're hydrated. You can check 'Biogesic' in the Medicine Library. If it persists, consult a doctor.",
+  "fever": "A fever often indicates your body is fighting an infection. Rest, stay hydrated, and monitor your temperature.",
+  "cough": "If you have a cough with phlegm, 'Solmux' might help. For dry coughs, stay hydrated and rest your throat.",
+  "stomach": "Stomach pain can be caused by many factors. Antacids like 'Gaviscon' help with acidity. For cramps, 'Buscopan' is often used.",
+  "cold": "Colds are viral. Rest and Vitamin C can help. For a runny nose, check 'Neozep' in our library.",
+  "help": "I can give you info on common symptoms and OTC medicines. Try asking about 'headache', 'fever', or 'medication'.",
+  "thanks": "You're welcome! Stay healthy!",
+  "thank you": "Happy to help! Let me know if you need anything else.",
+};
 
 export default function ChatScreen() {
   const { colors } = useTheme();
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: "0",
-      role: "bot",
-      content: "👋 Hi! I'm the SympTax Health Bot. Ask me about symptoms, medicines, or general health questions. I cannot diagnose, but I can help you understand your health better.",
+      id: "1",
+      text: "Hello! I'm your SympTax AI assistant. I can help you with medication info and common health questions. What's on your mind?",
+      sender: "bot",
+      timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const flatListRef = useRef<FlatList>(null);
+  const [typing, setTyping] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
-  const sendMessage = useCallback(async () => {
-    if (!input.trim() || loading) return;
+  const getBotResponse = (text: string) => {
+    const lower = text.toLowerCase();
+    for (const key in KEYWORD_RESPONSES) {
+      if (lower.includes(key)) return KEYWORD_RESPONSES[key];
+    }
+    return "I'm not sure about that. Try checking our Medicine Library or consulting a medical professional for specific advice.";
+  };
 
-    const userMsg: Message = { id: Date.now().toString(), role: "user", content: input.trim() };
-    const history = messages.map((m) => ({ role: m.role, content: m.content }));
-    setMessages((prev) => [...prev, userMsg]);
+  const handleSend = () => {
+    if (!input.trim()) return;
+
+    const userMsg: Message = {
+      id: Date.now().toString(),
+      text: input,
+      sender: "user",
+      timestamp: new Date(),
+    };
+
+    setMessages((prev: Message[]) => [...prev, userMsg]);
+    const currentInput = input;
     setInput("");
-    setLoading(true);
+    setTyping(true);
 
-    try {
-      const token = await getToken();
-      const res = await apiRequest("/api/chat", {
-        method: "POST",
-        token: token || undefined,
-        body: JSON.stringify({ message: userMsg.content, history }),
-      });
-      const data = await res.json();
+    // Simulate AI thinking
+    setTimeout(() => {
       const botMsg: Message = {
         id: (Date.now() + 1).toString(),
-        role: "bot",
-        content: data.response || "I couldn't process that. Please try again.",
+        text: getBotResponse(currentInput),
+        sender: "bot",
+        timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, botMsg]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        { id: Date.now().toString(), role: "bot", content: "Connection error. Please check your internet." },
-      ]);
-    } finally {
-      setLoading(false);
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-    }
-  }, [input, loading, messages]);
+      setMessages((prev: Message[]) => [...prev, botMsg]);
+      setTyping(false);
+    }, 1000);
+  };
+
+  useEffect(() => {
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+  }, [messages, typing]);
 
   const s = makeStyles(colors);
 
   return (
     <SafeAreaView style={s.safe}>
       <KeyboardAvoidingView
-        style={s.flex}
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         {/* Header */}
         <View style={s.header}>
-          <View style={s.botAvatar}>
-            <Ionicons name="sparkles" size={18} color="#fff" />
-          </View>
-          <View>
-            <Text style={s.headerTitle}>SympTax Health Bot</Text>
-            <Text style={s.headerSub}>Powered by Gemini AI · Clinical use only</Text>
+          <View style={s.botInfo}>
+            <View style={s.botAvatar}>
+              <Ionicons name="pulse" size={20} color="#fff" />
+            </View>
+            <View>
+              <Text style={s.botName}>Health Assistant</Text>
+              <View style={s.statusRow}>
+                <View style={s.statusDot} />
+                <Text style={s.statusText}>AI Placeholder Active</Text>
+              </View>
+            </View>
           </View>
         </View>
 
-        {/* Messages */}
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={s.msgList}
+        <ScrollView
+          ref={scrollRef}
+          style={s.chatArea}
+          contentContainerStyle={{ padding: 20 }}
           showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-          renderItem={({ item }) => (
-            <View style={[s.bubble, item.role === "user" ? s.userBubble : s.botBubble]}>
-              {item.role === "bot" && (
-                <View style={s.botIcon}>
-                  <Ionicons name="sparkles" size={10} color={colors.accent} />
-                </View>
-              )}
-              <View style={[s.bubbleContent, item.role === "user" ? s.userBubbleContent : s.botBubbleContent]}>
-                <Text style={[s.bubbleText, item.role === "user" ? s.userText : s.botText]}>
-                  {item.content}
+        >
+          {messages.map((m: Message) => (
+            <View
+              key={m.id}
+              style={[
+                s.msgWrapper,
+                m.sender === "user" ? s.userWrapper : s.botWrapper,
+              ]}
+            >
+              <View
+                style={[
+                  s.bubble,
+                  m.sender === "user" ? s.userBubble : s.botBubble,
+                ]}
+              >
+                <Text
+                  style={[
+                    s.msgText,
+                    m.sender === "user" ? s.userText : s.botText,
+                  ]}
+                >
+                  {m.text}
                 </Text>
+              </View>
+              <Text style={s.timeText}>
+                {m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            </View>
+          ))}
+          {typing && (
+            <View style={s.botWrapper}>
+              <View style={[s.bubble, s.botBubble, { width: 60 }]}>
+                <ActivityIndicator size="small" color={colors.accent} />
               </View>
             </View>
           )}
-          ListFooterComponent={
-            loading ? (
-              <View style={s.typingRow}>
-                <View style={s.botIcon}>
-                  <Ionicons name="sparkles" size={10} color={colors.accent} />
-                </View>
-                <View style={s.typingBubble}>
-                  <ActivityIndicator size="small" color={colors.accent} />
-                  <Text style={s.typingText}>Analyzing...</Text>
-                </View>
-              </View>
-            ) : null
-          }
-        />
+        </ScrollView>
 
-        <Text style={s.disclaimer}>⚕️ Not a medical diagnosis. Consult your doctor.</Text>
-
-        {/* Input */}
-        <View style={s.inputRow}>
+        {/* Input Area */}
+        <View style={s.inputContainer}>
           <TextInput
             style={s.input}
-            placeholder="Ask about symptoms, medicines..."
+            placeholder="Type your health question..."
             placeholderTextColor={colors.textMuted}
             value={input}
             onChangeText={setInput}
             multiline
-            maxLength={500}
-            onSubmitEditing={sendMessage}
-            returnKeyType="send"
           />
           <TouchableOpacity
-            style={[s.sendBtn, (!input.trim() || loading) && s.sendBtnDisabled]}
-            onPress={sendMessage}
-            disabled={!input.trim() || loading}
+            style={[s.sendBtn, !input.trim() && s.sendBtnDisabled]}
+            onPress={handleSend}
+            disabled={!input.trim() || typing}
           >
-            <Ionicons name="send" size={18} color="#fff" />
+            <Ionicons name="send" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -150,29 +175,77 @@ export default function ChatScreen() {
 function makeStyles(colors: ReturnType<typeof import("@/lib/theme").useTheme>["colors"]) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.bg },
-    flex: { flex: 1 },
-    header: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
-    botAvatar: { width: 40, height: 40, borderRadius: 14, backgroundColor: colors.accent, justifyContent: "center", alignItems: "center" },
-    headerTitle: { fontSize: 16, fontWeight: "800", color: colors.text },
-    headerSub: { fontSize: 11, color: colors.textMuted, marginTop: 1 },
-    msgList: { padding: 16, gap: 12 },
-    bubble: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
-    userBubble: { justifyContent: "flex-end" },
-    botBubble: { justifyContent: "flex-start" },
-    botIcon: { width: 24, height: 24, borderRadius: 8, backgroundColor: colors.accentLight, justifyContent: "center", alignItems: "center", marginBottom: 2 },
-    bubbleContent: { maxWidth: "80%", borderRadius: 18, padding: 12 },
-    userBubbleContent: { backgroundColor: colors.accent, borderBottomRightRadius: 4 },
-    botBubbleContent: { backgroundColor: colors.card, borderBottomLeftRadius: 4, shadowColor: "#0f172a", shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 },
-    bubbleText: { fontSize: 14, lineHeight: 20 },
-    userText: { color: "#fff", fontWeight: "600" },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.card,
+    },
+    botInfo: { flexDirection: "row", alignItems: "center", gap: 12 },
+    botAvatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 14,
+      backgroundColor: colors.accent,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    botName: { fontSize: 16, fontWeight: "800", color: colors.text },
+    statusRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
+    statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#10b981" },
+    statusText: { fontSize: 10, color: colors.textMuted, fontWeight: "700" },
+    chatArea: { flex: 1 },
+    msgWrapper: { marginBottom: 20, maxWidth: "80%" },
+    userWrapper: { alignSelf: "flex-end" },
+    botWrapper: { alignSelf: "flex-start" },
+    bubble: { borderRadius: 20, padding: 14 },
+    userBubble: {
+      backgroundColor: colors.accent,
+      borderBottomRightRadius: 4,
+    },
+    botBubble: {
+      backgroundColor: colors.card,
+      borderBottomLeftRadius: 4,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    msgText: { fontSize: 14, lineHeight: 20 },
+    userText: { color: "#fff", fontWeight: "500" },
     botText: { color: colors.text },
-    typingRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
-    typingBubble: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.card, borderRadius: 14, padding: 12, shadowColor: "#0f172a", shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 },
-    typingText: { fontSize: 13, color: colors.accent, fontWeight: "600" },
-    disclaimer: { fontSize: 10, color: colors.textMuted, textAlign: "center", paddingVertical: 6, fontWeight: "600" },
-    inputRow: { flexDirection: "row", alignItems: "flex-end", gap: 10, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.border },
-    input: { flex: 1, minHeight: 44, maxHeight: 100, backgroundColor: colors.inputBg, borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: colors.text },
-    sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.accent, justifyContent: "center", alignItems: "center", shadowColor: colors.accent, shadowOpacity: 0.35, shadowRadius: 8, elevation: 4 },
-    sendBtnDisabled: { opacity: 0.4 },
+    timeText: {
+      fontSize: 10,
+      color: colors.textMuted,
+      marginTop: 4,
+      marginHorizontal: 4,
+    },
+    inputContainer: {
+      flexDirection: "row",
+      padding: 16,
+      gap: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.card,
+    },
+    input: {
+      flex: 1,
+      backgroundColor: colors.inputBg,
+      borderRadius: 20,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      maxHeight: 100,
+      color: colors.text,
+      fontSize: 14,
+    },
+    sendBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.accent,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    sendBtnDisabled: { opacity: 0.5 },
   });
 }

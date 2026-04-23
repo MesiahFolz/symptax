@@ -6,12 +6,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/lib/theme";
+import { useToast } from "@/lib/Toast";
 import { getEmergencyCard, saveEmergencyCard, EmergencyCard, DEFAULT_EMERGENCY } from "@/lib/storage";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"];
 
 export default function EmergencyCardScreen() {
   const { colors } = useTheme();
+  const { showToast } = useToast();
   const [card, setCard] = useState<EmergencyCard>(DEFAULT_EMERGENCY);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -26,8 +28,8 @@ export default function EmergencyCardScreen() {
     await saveEmergencyCard(card);
     setSaving(false);
     setEditing(false);
-    Alert.alert("✅ Saved", "Your Emergency Card has been updated.");
-  }, [card]);
+    showToast("Medical card saved!");
+  }, [card, showToast]);
 
   const s = makeStyles(colors);
 

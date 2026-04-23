@@ -10,31 +10,39 @@ import { getUser, getToken, clearAuth, AuthUser } from "@/lib/auth";
 import { apiRequest } from "@/lib/api";
 import { registerForPushNotifications } from "@/lib/notifications";
 import { useTheme } from "@/lib/theme";
+import { getGuestProfile } from "@/lib/storage";
 
 export default function HomeScreen() {
   const { colors } = useTheme();
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [guestName, setGuestName] = useState("Guest");
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async () => {
-    const u = await getUser();
-    const t = await getToken();
-    if (!u || !t) { router.replace("/(auth)"); return; }
-    setUser(u);
+    try {
+      const u = await getUser();
+      const t = await getToken();
+      if (!u || !t) { router.replace("/(auth)"); return; }
+      setUser(u);
 
-    if (u.role !== "GUEST") {
-      registerForPushNotifications(t).catch(() => {});
-      try {
+      if (u.role === "GUEST") {
+        const guestData = await getGuestProfile();
+        setGuestName(guestData.name || "Guest");
+      } else {
+        registerForPushNotifications(t).catch(() => {});
         const res = await apiRequest("/api/records", { token: t });
         if (res.ok) {
           const data = await res.json();
           setRecords((data.records || []).slice(0, 3));
         }
-      } catch {}
+      }
+    } catch (e) {
+      console.error("Home load error", e);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
@@ -69,11 +77,10 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={s.header}>
           <View>
             <Text style={s.greeting}>Good day,</Text>
-            <Text style={s.name}>{user?.name}</Text>
+            <Text style={s.name}>{user?.role === "GUEST" ? guestName : user?.name}</Text>
           </View>
           <TouchableOpacity onPress={handleSignOut} style={s.signOutBtn}>
             <Ionicons name="log-out-outline" size={20} color={colors.danger} />
@@ -139,7 +146,7 @@ export default function HomeScreen() {
         {records.length > 0 && (
           <>
             <Text style={s.sectionTitle}>Recent Records</Text>
-            {records.map((rec) => (
+            {records.map((rec: any) => (
               <View key={rec.id} style={s.recordCard}>
                 <View style={s.recordLeft}>
                   <View style={[s.recordDot, { backgroundColor: colors.accent }]} />

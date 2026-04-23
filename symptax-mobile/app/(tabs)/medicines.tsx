@@ -18,6 +18,11 @@ const MEDICINES = [
   { id: "8", name: "Ascorbic Acid (Vitamin C)", category: "Vitamin", symptoms: ["Immunity Boost", "Weakness"], dosage: "500–1000mg", interval: "Once daily", max: "Max 2000mg/day", advice: "Best after breakfast.", color: "#ef4444" },
   { id: "9", name: "Buscopan (Hyoscine)", category: "Antispasmodic", symptoms: ["Stomach Cramps", "Menstrual Cramps"], dosage: "10–20mg", interval: "3–5 times a day", max: "Max 100mg/day", advice: "Take 30–60 min before meals.", color: "#6366f1" },
   { id: "10", name: "Cetirizine (Virlix)", category: "Antihistamine", symptoms: ["Allergy", "Itchiness", "Hives"], dosage: "10mg", interval: "Once daily", max: "Max 10mg/day", advice: "Take at night if drowsy.", color: "#7c3aed" },
+  { id: "11", name: "B-Complex Vitamins", category: "Supplement", symptoms: ["Nerve Pain", "Fatigue", "Numbness"], dosage: "1 tablet", interval: "Once daily", max: "1 tablet/day", advice: "Helps with nerve regeneration.", color: "#f43f5e" },
+  { id: "12", name: "Losartan (Lifezar)", category: "Antihypertensive", symptoms: ["High Blood Pressure"], dosage: "50mg", interval: "Once daily", max: "Per prescription", advice: "Don't skip doses. Monitor BP.", color: "#22c55e" },
+  { id: "13", name: "Metformin (Glucophage)", category: "Antidiabetic", symptoms: ["High Blood Sugar"], dosage: "500mg", interval: "Twice daily with meals", max: "Per prescription", advice: "Take with food to avoid stomach upset.", color: "#d946ef" },
+  { id: "14", name: "Zinc + Ascorbic Acid", category: "Supplement", symptoms: ["Cold Prevention", "Wound Healing"], dosage: "1 capsule", interval: "Once daily", max: "1 capsule/day", advice: "Excellent for recovery.", color: "#fbbf24" },
+  { id: "15", name: "Potassium Citrate", category: "Urinary Alkalinizer", symptoms: ["Kidney Stones", "Urine Acidity"], dosage: "1080mg", interval: "Twice daily", max: "Per prescription", advice: "Take with plenty of water.", color: "#38bdf8" },
 ];
 
 export default function MedicinesScreen() {
@@ -26,9 +31,9 @@ export default function MedicinesScreen() {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const filtered = MEDICINES.filter(
-    (m) =>
+    (m: any) =>
       m.name.toLowerCase().includes(search.toLowerCase()) ||
-      m.symptoms.some((s) => s.toLowerCase().includes(search.toLowerCase())) ||
+      m.symptoms.some((sym: string) => sym.toLowerCase().includes(search.toLowerCase())) ||
       m.category.toLowerCase().includes(search.toLowerCase())
   );
 
