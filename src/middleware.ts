@@ -11,9 +11,13 @@ export default withAuth(
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    // 2. Dashboard Access
-    if (path.startsWith("/dashboard") && !token) {
-      return NextResponse.redirect(new URL("/login", req.url));
+    // 2. Guest Restrictions
+    const isGuest = token?.role === "GUEST";
+    const corePages = ["/dashboard/medical-history", "/dashboard/medicines", "/dashboard/ai-chat", "/dashboard/profile", "/dashboard"];
+    const isCorePage = corePages.some(cp => path === cp || path === cp + "/");
+    
+    if (isGuest && path.startsWith("/dashboard") && !isCorePage) {
+       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
     return NextResponse.next();

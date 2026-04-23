@@ -132,7 +132,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </Link>
               )}
             </>
-          ) : (
+          ) : role !== "GUEST" ? (
             <>
               <button onClick={() => handleLockedFeature("Health Insights")} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 dark:text-slate-600 transition-all font-semibold w-full text-left opacity-60 cursor-not-allowed">
                 <Lightbulb className="h-5 w-5" />
@@ -155,12 +155,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Lock className="h-3.5 w-3.5 ml-auto text-amber-500/70" />
               </button>
             </>
-          )}
+          ) : null}
         </nav>
 
         <div className="p-4 border-t border-border bg-surface-subtle/30">
           {/* Verification Banner */}
-          {!isVerified && (
+          {!isVerified && role !== "GUEST" && (
             <Link href="/dashboard/profile" className="flex items-center gap-3 mb-4 p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-all">
               <ShieldCheck className="h-5 w-5 text-amber-600 shrink-0" />
               <div>

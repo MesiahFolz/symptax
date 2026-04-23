@@ -47,6 +47,20 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        if (credentials?.email === "guest" && credentials?.password === "guest") {
+          return {
+            id: "guest-session",
+            email: "guest@symptax.io",
+            name: "Guest Explorer",
+            role: "GUEST",
+            publicId: "ST-GUEST",
+            isVerified: false,
+            image: "",
+            hospitalId: null,
+            branchId: null,
+          };
+        }
+
         if (!credentials?.email || !credentials?.password) {
           return null;
         }

@@ -287,18 +287,18 @@ export default function ProfilePage() {
                ) : (
                   <ShieldAlert className="h-4 w-4 text-amber-600" />
                )}
-               <span className={`text-xs font-black uppercase tracking-widest ${
-                  isVerified ? "text-emerald-700" : "text-amber-700"
-               }`}>
+                <span className={`text-xs font-black uppercase tracking-widest ${
+                  isVerified ? "text-emerald-700" : currentRole === "GUEST" ? "text-slate-500" : "text-amber-700"
+                }`}>
                   {isVerified 
                     ? `Verified ${currentRole.toLowerCase().split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}` 
-                    : "Not Verified"}
-               </span>
+                    : currentRole === "GUEST" ? "Guest Access" : "Not Verified"}
+                </span>
             </div>
          </div>
 
-         {/* === VERIFICATION SECTION (shown only if NOT verified) === */}
-         {!isVerified && !verificationSubmitted && (
+         {/* === VERIFICATION SECTION (shown only if NOT verified AND NOT GUEST) === */}
+         {!isVerified && currentRole !== "GUEST" && !verificationSubmitted && (
             <Card className="border-2 border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-900/10 shadow-xl overflow-hidden">
                <CardHeader className="border-b border-amber-200/50 dark:border-amber-800/30">
                   <div className="flex items-center gap-3">

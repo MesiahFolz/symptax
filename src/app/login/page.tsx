@@ -116,6 +116,32 @@ export default function LoginPage() {
                 {loading ? "Signing in..." : "Sign in"}
                 {!loading && <ArrowRight className="h-4 w-4" />}
               </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t dark:border-slate-800" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white dark:bg-slate-900 px-2 text-slate-500 font-bold">Or</span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={async () => {
+                  setLoading(true);
+                  await signIn("credentials", {
+                    email: "guest",
+                    password: "guest",
+                    callbackUrl: "/dashboard",
+                  });
+                }}
+                className="w-full h-12 rounded-xl border-2 border-slate-200 dark:border-slate-800 font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                disabled={loading}
+              >
+                Continue as Guest
+              </Button>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center text-sm text-slate-500 dark:text-slate-400">
