@@ -62,7 +62,7 @@ export async function GET() {
             branch: { select: { id: true, name: true } }
           }
         }
-      },
+      } as any,
       orderBy: { createdAt: 'desc' }
     });
 
