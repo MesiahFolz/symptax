@@ -1,64 +1,14 @@
-diff --git a/node_modules/react-native-reanimated/android/CMakeLists.txt b/node_modules/react-native-reanimated/android/CMakeLists.txt
-index c4e4df9..0ed8230 100644
---- a/node_modules/react-native-reanimated/android/CMakeLists.txt
-+++ b/node_modules/react-native-reanimated/android/CMakeLists.txt
-@@ -85,7 +85,7 @@ set_target_properties(
-   worklets
-   PROPERTIES
-     IMPORTED_LOCATION
--    "${REACT_NATIVE_WORKLETS_DIR}/android/build/intermediates/cmake/${BUILD_TYPE}/obj/${ANDROID_ABI}/libworklets.so"
-+    "${REACT_NATIVE_WORKLETS_DIR}/android/build/intermediates/cmake/${BUILD_TYPE}/obj/${ANDROID_ABI}/librnworklets.so"
- )
- 
- set_target_properties(reanimated PROPERTIES LINKER_LANGUAGE CXX)
 diff --git a/node_modules/react-native-reanimated/android/build.gradle b/node_modules/react-native-reanimated/android/build.gradle
-index 6b73a69..5ff8c17 100644
+index 6b73a69..564c17b 100644
 --- a/node_modules/react-native-reanimated/android/build.gradle
 +++ b/node_modules/react-native-reanimated/android/build.gradle
-@@ -52,7 +52,7 @@ def resolveReactNativeWorkletsDirectory() {
-     def reactNativeWorkletsPackage = file(
-         providers.exec {
-             workingDir(rootDir)
--            commandLine("node", "--print", "require.resolve('react-native-worklets/package.json')")
-+            commandLine("node", "--print", "require.resolve('react-native-worklets-core/package.json')")
-         }.standardOutput.asText.get().trim()
-     )
-     if (reactNativeWorkletsPackage.exists()) {
-@@ -60,7 +60,7 @@ def resolveReactNativeWorkletsDirectory() {
-     }
- 
-     throw new GradleException(
--        "[Reanimated] Unable to resolve react-native-worklets location in node_modules. You should set project extension property (in `app/build.gradle`) named `REACT_NATIVE_WORKLETS_NODE_MODULES_DIR` with the path to react-native-worklets in node_modules."
-+        "[Reanimated] Unable to resolve react-native-worklets-core location in node_modules. You should set project extension property (in `app/build.gradle`) named `REACT_NATIVE_WORKLETS_NODE_MODULES_DIR` with the path to react-native-worklets-core in node_modules."
-     )
- }
- 
-@@ -346,10 +346,10 @@ dependencies {
-     if (project == rootProject) {
-         // This is needed for linting in Reanimated's repo.
-     } else {
--        if (rootProject.subprojects.find { it.name == "react-native-worklets" }) {
--            implementation project(":react-native-worklets")
-+        if (rootProject.subprojects.find { it.name == "react-native-worklets-core" }) {
-+            implementation project(":react-native-worklets-core")
+@@ -349,7 +349,7 @@ dependencies {
+         if (rootProject.subprojects.find { it.name == "react-native-worklets" }) {
+             implementation project(":react-native-worklets")
          } else {
 -            throw new GradleException("[Reanimated] `react-native-worklets` library not found. Please install it as a dependency in your project. Install `react-native-worklets` with your package manager, i.e. `yarn add react-native-worklets` or `npm i react-native-worklets`. Read the documentation for more details: https://docs.swmansion.com/react-native-reanimated/docs/guides/troubleshooting#unable-to-find-a-specification-for-rnworklets-depended-upon-by-rnreanimated")
-+            throw new GradleException("[Reanimated] `react-native-worklets-core` library not found. Please install it as a dependency in your project.")
++            throw new GradleException("[Reanimated] `react-native-worklets` library not found. Please install it as a dependency in your project.")
          }
-     }
- }
-@@ -357,10 +357,10 @@ dependencies {
- preBuild.dependsOn(prepareReanimatedHeadersForPrefabs)
- 
- if (project != rootProject) {
--    evaluationDependsOn(":react-native-worklets")
-+    evaluationDependsOn(":react-native-worklets-core")
- 
-     afterEvaluate {
--        tasks.getByName("externalNativeBuildDebug").dependsOn(findProject(":react-native-worklets").tasks.getByName("externalNativeBuildDebug"))
--        tasks.getByName("externalNativeBuildRelease").dependsOn(findProject(":react-native-worklets").tasks.getByName("externalNativeBuildRelease"))
-+        tasks.getByName("externalNativeBuildDebug").dependsOn(findProject(":react-native-worklets-core").tasks.getByName("externalNativeBuildDebug"))
-+        tasks.getByName("externalNativeBuildRelease").dependsOn(findProject(":react-native-worklets-core").tasks.getByName("externalNativeBuildRelease"))
      }
  }
 diff --git a/node_modules/react-native-reanimated/plugin/index.js b/node_modules/react-native-reanimated/plugin/index.js
