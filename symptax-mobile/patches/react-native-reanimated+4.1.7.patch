@@ -11,16 +11,6 @@ index 6b73a69..564c17b 100644
          }
      }
  }
-diff --git a/node_modules/react-native-reanimated/plugin/index.js b/node_modules/react-native-reanimated/plugin/index.js
-index 0f5fd05..8638740 100644
---- a/node_modules/react-native-reanimated/plugin/index.js
-+++ b/node_modules/react-native-reanimated/plugin/index.js
-@@ -1,4 +1,4 @@
- // @ts-ignore plugin type isn't exposed
--const plugin = require('react-native-worklets/plugin');
-+const plugin = require('react-native-worklets-core/plugin');
- 
- module.exports = plugin;
 diff --git a/node_modules/react-native-reanimated/scripts/validate-worklets-version.js b/node_modules/react-native-reanimated/scripts/validate-worklets-version.js
 index 57fcc25..f2fa635 100644
 --- a/node_modules/react-native-reanimated/scripts/validate-worklets-version.js
